@@ -48,7 +48,7 @@ function interpolateColor(ratio) {
     Math.round(COLOR_LOW[0] + (COLOR_HIGH[0] - COLOR_LOW[0]) * ratio),
     Math.round(COLOR_LOW[1] + (COLOR_HIGH[1] - COLOR_LOW[1]) * ratio),
     Math.round(COLOR_LOW[2] + (COLOR_HIGH[2] - COLOR_LOW[2]) * ratio),
-    220
+    160 // partial transparency (alpha channel) so dense clusters remain readable
   ];
 }
 
@@ -155,19 +155,30 @@ export default function GeospatialAnalysis() {
           data: processedData,
           getPosition: d => [d.longitude, d.latitude],
           radiusUnits: 'pixels',
+          radiusMinPixels: 5,
+          radiusMaxPixels: 50,
           getRadius: d => {
+            // Apply Math.sqrt() to the total violations count for the radius calculation
             const ratio = Math.sqrt(d.total) / sqrtMax;
-            return 10 + ratio * 35;
+            return 10 + ratio * 40; 
           },
           getFillColor: d => {
             const ratio = Math.sqrt(d.total) / sqrtMax;
             return interpolateColor(ratio);
           },
           pickable: true,
+          autoHighlight: true,
+          highlightColor: [255, 255, 255, 100],
           stroked: true,
           getLineColor: [255, 255, 255, 180],
-          getLineWidth: 1.5,
-          lineWidthUnits: 'pixels',
+          getLineWidth: 20,
+          lineWidthUnits: 'meters',
+          lineWidthMinPixels: 1,
+          onClick: ({ object }) => {
+            if (object) {
+              setCenterCode(object.center_code.toString());
+            }
+          },
           updateTriggers: {
             getRadius: [sqrtMax],
             getFillColor: [sqrtMax]
@@ -176,6 +187,7 @@ export default function GeospatialAnalysis() {
         new TextLayer({
           id: 'city-wide-text',
           data: processedData,
+          pickable: false, // Prevents text from stealing hover events
           getPosition: d => [d.longitude, d.latitude],
           getText: d => d.total.toLocaleString(),
           getSize: 12,
@@ -208,6 +220,27 @@ export default function GeospatialAnalysis() {
       })
     ];
   }, [processedData, mapType, sqrtMax]);
+
+  const getTooltip = useCallback(({ object }) => {
+    if (!object || object.center_code == null) return null;
+    const center = CENTERS.find(c => String(c.code) === String(object.center_code));
+    const name = center ? center.name : 'Unknown Station';
+    return {
+      html: `<div class="font-sans">
+               <div class="font-bold text-sm mb-1">${object.center_code} - ${name}</div>
+               <div class="text-xs text-muted-foreground">Violations: ${object.total.toLocaleString()}</div>
+             </div>`,
+      style: {
+        backgroundColor: 'white',
+        color: 'black',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        border: '1px solid #e2e8f0',
+        zIndex: 100
+      }
+    };
+  }, []);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -263,7 +296,8 @@ export default function GeospatialAnalysis() {
           initialViewState={viewStateOverride}
           onViewStateChange={handleViewStateChange}
           controller={true}
-          getCursor={({ isDragging }) => isDragging ? 'grabbing' : 'grab'}
+          getTooltip={getTooltip}
+          getCursor={({ isDragging, isHovering }) => isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab'}
         >
           <Map 
             mapStyle={MAP_STYLE} 
