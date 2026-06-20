@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Layout from "@/components/layout/Layout";
 import ExecutiveSummary from "@/pages/ExecutiveSummary";
 import TemporalMapping from "@/pages/TemporalMapping";
-import GeospatialDeepDive from "@/pages/GeospatialDeepDive";
+import GeospatialAnalysis from "@/pages/GeospatialAnalysis";
 import ExploratorySandbox from "@/pages/ExploratorySandbox";
 import Settings from "@/pages/Settings";
 import DataManagement from "@/pages/DataManagement";
@@ -27,7 +27,7 @@ export default function App() {
             <Route path="analytics" element={<AnalyticsGuard />}>
               <Route path="executive" element={<ExecutiveSummary />} />
               <Route path="temporal" element={<TemporalMapping />} />
-              <Route path="geospatial" element={<GeospatialDeepDive />} />
+              <Route path="geospatial" element={<GeospatialAnalysis />} />
               <Route path="sandbox" element={<ExploratorySandbox />} />
             </Route>
             

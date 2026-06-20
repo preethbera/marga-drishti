@@ -37,18 +37,22 @@ export function SearchableCombobox({ items, value, onSelect, placeholder, emptyT
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger render={
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
-        >
+        />
+      }>
+        <span className="truncate">
           {selectedItem
-            ? `${selectedItem.code} - ${selectedItem.name}`
+            ? selectedItem.code === selectedItem.name
+              ? selectedItem.name
+              : `${selectedItem.code} - ${selectedItem.name}`
             : placeholder || "Select item..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+        </span>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command filter={customFilter}>
@@ -72,7 +76,7 @@ export function SearchableCombobox({ items, value, onSelect, placeholder, emptyT
                       String(value) === String(item.code) ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {item.code} - {item.name}
+                  {item.code === item.name ? item.name : `${item.code} - ${item.name}`}
                 </CommandItem>
               ))}
             </CommandGroup>

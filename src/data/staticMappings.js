@@ -95,12 +95,3 @@ export const OFFENCES = [
   { code: 237, name: "2W/3W - USING MOBILE PHONE" },
   { code: 437, name: "OTHER - USING MOBILE PHONE" }
 ];
-
-export const VEHICLE_TYPES = [
-  { code: "2W", name: "Two Wheeler" },
-  { code: "3W", name: "Three Wheeler" },
-  { code: "4W", name: "Four Wheeler" },
-  { code: "LMV", name: "Light Motor Vehicle" },
-  { code: "HMV", name: "Heavy Motor Vehicle" },
-  { code: "BUS", name: "Bus" }
-];

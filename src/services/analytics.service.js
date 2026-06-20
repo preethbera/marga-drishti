@@ -194,13 +194,10 @@ export const AnalyticsService = {
         try {
             let whereClauses = [];
             
-            // If filtering by offence code (array contains)
-            // traffic_violations.offence_code is a LIST(INTEGER)
             if (offenceCode && offenceCode !== 'all') {
                 whereClauses.push(`list_contains(offence_code, ${offenceCode})`);
             }
             
-            // If filtering by vehicle type
             if (vehicleType && vehicleType !== 'all') {
                 whereClauses.push(`vehicle_type = '${vehicleType}'`);
             }

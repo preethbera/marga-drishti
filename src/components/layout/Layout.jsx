@@ -40,11 +40,9 @@ export default function Layout() {
                 ) : (
                   <>
                     <BreadcrumbItem className="hidden md:block">
-                      <Link to="/command-center">
-                        <BreadcrumbLink>
-                          Dashboard
-                        </BreadcrumbLink>
-                      </Link>
+                      <BreadcrumbLink render={<Link to="/command-center" />}>
+                        Dashboard
+                      </BreadcrumbLink>
                     </BreadcrumbItem>
 
                     {pathSegments.map((segment, index) => {
@@ -61,11 +59,9 @@ export default function Layout() {
                             {isLast ? (
                               <BreadcrumbPage>{title}</BreadcrumbPage>
                             ) : (
-                              <Link to={path} className="hidden md:block">
-                                <BreadcrumbLink>
-                                  {title}
-                                </BreadcrumbLink>
-                              </Link>
+                              <BreadcrumbLink render={<Link to={path} className="hidden md:block" />}>
+                                {title}
+                              </BreadcrumbLink>
                             )}
                           </BreadcrumbItem>
                         </React.Fragment>
