@@ -3,33 +3,40 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Play, Eye, Trash2 } from 'lucide-react';
+import { Play, Eye, Trash2, Loader2 } from 'lucide-react';
 import { useUiStore } from '@/store/useUiStore';
-import { setActiveTable, fetchSystemDefault } from '@/lib/duckdbEngine';
+import { DatabaseService } from '@/services/database.service';
 import { getFileFromOPFS, deleteFromOPFS, listOPFSFiles } from '@/lib/opfs';
 import DataPreviewSheet from './DataPreviewSheet';
 
 export default function DataRegistryTable() {
   const { availableDatasets, setAvailableDatasets, activeDatasetId, setActiveDatasetId, setIsDataLoaded, addLog } = useUiStore();
   const [previewFile, setPreviewFile] = useState(null);
+  const [mountingId, setMountingId] = useState(null);
 
   const handleSetActive = async (fileMetadata) => {
     try {
+      setMountingId(fileMetadata.id);
       addLog(`Mounting ${fileMetadata.name}...`);
+      
+      // Yield to let React render the optimistic mounting state
+      await new Promise(resolve => setTimeout(resolve, 10));
       let buffer;
       if (fileMetadata.source === 'System Default') {
-        buffer = await fetchSystemDefault(fileMetadata.url);
+        buffer = await DatabaseService.fetchSystemDefault(fileMetadata.url);
       } else {
         const opfsFile = await getFileFromOPFS(fileMetadata.name);
         buffer = new Uint8Array(await opfsFile.arrayBuffer());
       }
       
-      const rowCount = await setActiveTable(fileMetadata.id, buffer);
+      const rowCount = await DatabaseService.setActiveTable(fileMetadata.id, buffer);
       setActiveDatasetId(fileMetadata.id);
       setIsDataLoaded(true, rowCount);
       addLog(`Mounted ${fileMetadata.name} successfully (${rowCount.toLocaleString()} rows).`);
     } catch (e) {
       addLog(`Failed to mount ${fileMetadata.name}: ${e.message}`);
+    } finally {
+      setMountingId(null);
     }
   };
 
@@ -79,11 +86,13 @@ export default function DataRegistryTable() {
         <TableBody>
           {availableDatasets.map((file) => {
             const isActive = activeDatasetId === file.id;
+            const isMounting = mountingId === file.id;
             return (
               <TableRow key={file.id} className={isActive ? 'bg-muted/50' : ''}>
                 <TableCell className="font-medium">
                   {file.name}
-                  {isActive && <Badge variant="secondary" className="ml-2 text-xs">ACTIVE</Badge>}
+                  {isActive && !isMounting && <Badge variant="secondary" className="ml-2 text-xs">ACTIVE</Badge>}
+                  {isMounting && <Badge variant="outline" className="ml-2 text-xs border-primary text-primary animate-pulse">MOUNTING...</Badge>}
                 </TableCell>
                 <TableCell>
                   <Badge variant={file.source === 'System Default' ? 'outline' : 'default'}>
@@ -95,11 +104,11 @@ export default function DataRegistryTable() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    disabled={isActive}
+                    disabled={isActive || mountingId !== null}
                     onClick={() => handleSetActive(file)}
                   >
-                    <Play className="w-4 h-4 mr-1" />
-                    Set Active
+                    {isMounting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Play className="w-4 h-4 mr-1" />}
+                    {isMounting ? "Loading..." : "Set Active"}
                   </Button>
                   <Button 
                     variant="outline" 

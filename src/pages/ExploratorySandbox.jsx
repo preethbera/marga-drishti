@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Download, LayoutGrid, Layers, Columns } from 'lucide-react';
-import { getExploratoryData } from '@/lib/duckdbEngine';
-import { useUiStore } from '@/store/useUiStore';
+import { AnalyticsService } from '@/services/analytics.service';
+import { useAnalyticsQuery } from '@/hooks/useAnalyticsQuery';
 
 export default function ExploratorySandbox() {
   const [xDimension, setXDimension] = useState('vehicle_type');
   const [yDimension, setYDimension] = useState('offence_code');
-  const [pivotData, setPivotData] = useState({ columns: [], rows: [] });
-
-  useEffect(() => {
-    loadData();
-  }, [xDimension, yDimension]);
-
-  async function loadData() {
-    useUiStore.getState().setIsLoading(true);
-    const result = await getExploratoryData(xDimension, yDimension);
-    setPivotData(result || { columns: [], rows: [] });
-    useUiStore.getState().setIsLoading(false);
-  }
+  const { data = { columns: [], rows: [] }, isLoading } = useAnalyticsQuery(
+    () => AnalyticsService.getExploratoryData(xDimension, yDimension),
+    [xDimension, yDimension],
+    { useGlobalLoader: true }
+  );
+  
+  const pivotData = data || { columns: [], rows: [] };
 
   function handleExport() {
     if (!pivotData || pivotData.rows.length === 0) return;

@@ -9,7 +9,12 @@ import GeospatialDeepDive from "@/pages/GeospatialDeepDive";
 import ExploratorySandbox from "@/pages/ExploratorySandbox";
 import Settings from "@/pages/Settings";
 import DataManagement from "@/pages/DataManagement";
-import PlaceholderPage from "@/pages/Placeholder";
+import AnalyticsGuard from "@/components/layout/AnalyticsGuard";
+import { initializeAppData } from "@/components/GlobalDataLoader";
+
+// Fire data initialization immediately on module load.
+// This runs before any React component mounts, eliminating race conditions.
+initializeAppData();
 
 export default function App() {
   return (
@@ -19,10 +24,12 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/analytics/executive" replace />} />
             
-            <Route path="analytics/executive" element={<ExecutiveSummary />} />
-            <Route path="analytics/temporal" element={<TemporalMapping />} />
-            <Route path="analytics/geospatial" element={<GeospatialDeepDive />} />
-            <Route path="analytics/sandbox" element={<ExploratorySandbox />} />
+            <Route path="analytics" element={<AnalyticsGuard />}>
+              <Route path="executive" element={<ExecutiveSummary />} />
+              <Route path="temporal" element={<TemporalMapping />} />
+              <Route path="geospatial" element={<GeospatialDeepDive />} />
+              <Route path="sandbox" element={<ExploratorySandbox />} />
+            </Route>
             
             <Route path="data-ingestion" element={<DataManagement />} />
             <Route path="settings" element={<Settings />} />

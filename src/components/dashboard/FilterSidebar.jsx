@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useUiStore } from '@/store/useUiStore';
-import { executeFilterQuery } from '@/lib/duckdbEngine';
+
 
 const VEHICLE_TYPES = ['LMV', 'HMV', '2W', '3W'];
 const OFFENCE_CODES = [

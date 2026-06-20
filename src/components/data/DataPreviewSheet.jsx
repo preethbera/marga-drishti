@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { previewTableData } from '@/lib/duckdbEngine';
+import { DatabaseService } from "@/services/database.service";
 
 export default function DataPreviewSheet({ file, onClose }) {
   const [rows, setRows] = useState([]);
@@ -31,7 +31,7 @@ export default function DataPreviewSheet({ file, onClose }) {
       
       // We will just fetch the current view. (In a production system, we'd temporarily mount the file if it's not active).
       try {
-        const data = await previewTableData(file.name, file.source, file.url);
+        const data = await DatabaseService.previewTableData(file.name, file.source, file.url);
         if (active) setRows(data);
       } catch (e) {
         console.error(e);

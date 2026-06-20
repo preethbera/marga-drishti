@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import { useUiStore } from '@/store/useUiStore';
 import { saveToOPFS, listOPFSFiles, getFileFromOPFS } from '@/lib/opfs';
-import { setActiveTable } from '@/lib/duckdbEngine';
+import { DatabaseService } from '@/services/database.service';
 
 export default function DataUploadZone() {
   const [isDragging, setIsDragging] = useState(false);
@@ -44,7 +44,7 @@ export default function DataUploadZone() {
       setUploadStatus('mounting');
       addLog(`Mounting ${uniqueName} into WASM Engine...`);
       const buffer = new Uint8Array(await file.arrayBuffer());
-      const rowCount = await setActiveTable(fileId, buffer);
+      const rowCount = await DatabaseService.setActiveTable(fileId, buffer);
       
       setActiveDatasetId(fileId);
       setIsDataLoaded(true, rowCount);

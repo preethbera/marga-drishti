@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MapContainer from '@/components/dashboard/MapContainer';
-import { getTemporalHotspots } from '@/lib/duckdbEngine';
+import { AnalyticsService } from '@/services/analytics.service';
+import { useAnalyticsQuery } from '@/hooks/useAnalyticsQuery';
 
 export default function TemporalMapping() {
-  const [mapData, setMapData] = useState(null);
   
   // Filters
   const [hourRange, setHourRange] = useState([0, 23]);
@@ -21,14 +21,11 @@ export default function TemporalMapping() {
     return () => clearTimeout(handler);
   }, [hourRange]);
 
-  useEffect(() => {
-    loadData();
-  }, [debouncedHourRange, dayOfWeek]);
-
-  async function loadData() {
-    const data = await getTemporalHotspots(debouncedHourRange, dayOfWeek);
-    setMapData(data);
-  }
+  const { data: mapData } = useAnalyticsQuery(
+    () => AnalyticsService.getTemporalHotspots(debouncedHourRange, dayOfWeek),
+    [debouncedHourRange, dayOfWeek],
+    { useGlobalLoader: true }
+  );
 
   const handleSliderChange = useCallback((value) => {
     setHourRange(value);

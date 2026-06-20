@@ -5,89 +5,13 @@ import DataStatusCard from '@/components/data/DataStatusCard';
 import DataLogsCard from '@/components/data/DataLogsCard';
 import { useUiStore } from '@/store/useUiStore';
 import { listOPFSFiles } from '@/lib/opfs';
-import { fetchSystemDefault, setActiveTable } from '@/lib/duckdbEngine';
+
 
 export default function DataManagement() {
-  const { setAvailableDatasets, activeDatasetId, setActiveDatasetId, setIsDataLoaded, addLog, availableDatasets } = useUiStore();
-
-  useEffect(() => {
-    let active = true;
-    const initializeData = async () => {
-      try {
-        const opfsFiles = await listOPFSFiles();
-        let validDatasets = [...opfsFiles];
-        
-        // Dynamically verify all system default files using the generated index.json
-        const defaultFiles = [];
-        
-        try {
-          const indexRes = await fetch('/data/index.json');
-          if (indexRes.ok) {
-            const potentialDefaults = await indexRes.json();
-            
-            for (const filename of potentialDefaults) {
-              const url = `/data/${filename}`;
-              try {
-                const res = await fetch(url, { method: 'HEAD' });
-                const contentType = res.headers.get('content-type');
-                
-                if (res.ok && (!contentType || !contentType.includes('text/html'))) {
-                  const sizeHeader = res.headers.get('content-length');
-                  defaultFiles.push({
-                    id: `System Default|${filename}`,
-                    name: filename,
-                    source: 'System Default',
-                    url: url,
-                    size: sizeHeader ? parseInt(sizeHeader, 10) : 0
-                  });
-                }
-              } catch (e) {
-                console.warn(`Failed to fetch metadata for ${filename}`);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn("Could not load /data/index.json");
-        }
-        
-        validDatasets = [...defaultFiles, ...validDatasets];
-        if (active) setAvailableDatasets(validDatasets);
-
-        // Auto-mount system default if nothing is active
-        if (!activeDatasetId && active && validDatasets.length > 0) {
-          const firstFile = validDatasets[0];
-          addLog(`Mounting ${firstFile.name}...`);
-          
-          let buffer;
-          if (firstFile.source === 'System Default') {
-            buffer = await fetchSystemDefault(firstFile.url);
-          } else {
-            const opfsFile = await getFileFromOPFS(firstFile.name);
-            buffer = new Uint8Array(await opfsFile.arrayBuffer());
-          }
-          
-          const rowCount = await setActiveTable(firstFile.id, buffer);
-          if (active) {
-            setActiveDatasetId(firstFile.id);
-            setIsDataLoaded(true, rowCount);
-            addLog(`Mounted successfully (${rowCount.toLocaleString()} rows).`);
-          }
-        }
-      } catch (e) {
-        if (active) addLog(`Initialization Error: ${e.message}`);
-      }
-    };
-    
-    // Only run if we don't already have datasets loaded
-    if (availableDatasets.length === 0) {
-       initializeData();
-    }
-    
-    return () => { active = false; };
-  }, [availableDatasets.length, activeDatasetId, addLog, setActiveDatasetId, setAvailableDatasets, setIsDataLoaded]);
+  const { activeDatasetId, setActiveDatasetId, setIsDataLoaded, addLog, availableDatasets } = useUiStore();
 
   return (
-    <div className="max-w-6xl mx-auto w-full p-6 md:p-8 flex flex-col gap-8 h-full overflow-y-auto">
+    <div className="max-w-6xl mx-auto w-full px-6 md:px-8 flex flex-col gap-8 h-full overflow-y-auto">
       
       {/* Section 1: Hero & Upload Deck */}
       <div className="flex flex-col gap-6">

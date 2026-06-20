@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // Bengaluru bounding box roughly
 const BENGALURU_BOUNDS = [
@@ -6,7 +7,7 @@ const BENGALURU_BOUNDS = [
   [77.85, 13.15]  // Northeast coordinates
 ];
 
-export const useUiStore = create((set) => ({
+export const useUiStore = create(persist((set) => ({
   viewport: {
     longitude: 77.5946,
     latitude: 12.9716,
@@ -39,4 +40,7 @@ export const useUiStore = create((set) => ({
   addLog: (message) => set((state) => ({ logs: [...state.logs, { time: new Date().toLocaleTimeString(), message }] })),
   setAvailableDatasets: (datasets) => set({ availableDatasets: datasets }),
   setActiveDatasetId: (id) => set({ activeDatasetId: id }),
+}), {
+  name: 'marga-drishti-storage',
+  partialize: (state) => ({ activeDatasetId: state.activeDatasetId }),
 }));

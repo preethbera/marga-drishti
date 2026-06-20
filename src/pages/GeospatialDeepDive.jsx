@@ -1,160 +1,195 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import DeckGL from '@deck.gl/react';
+import { ScatterplotLayer, TextLayer } from '@deck.gl/layers';
+import { HeatmapLayer } from '@deck.gl/aggregation-layers';
+import Map from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { FlyToInterpolator } from '@deck.gl/core';
+
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getRegionalData } from '@/lib/duckdbEngine';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import { useUiStore } from '@/store/useUiStore';
-import { MapPin, Building2 } from 'lucide-react';
+import { SearchableCombobox } from '@/components/ui/searchable-combobox';
+import { Loader2, RefreshCcw } from 'lucide-react';
+
+import { useAnalyticsQuery } from '@/hooks/useAnalyticsQuery';
+import { AnalyticsService } from '@/services/analytics.service';
+import { CENTERS, OFFENCES, VEHICLE_TYPES } from '@/data/staticMappings';
+
+const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const INITIAL_VIEW_STATE = {
+  longitude: 77.5946,
+  latitude: 12.9716,
+  zoom: 11,
+  pitch: 0,
+  bearing: 0,
+  transitionDuration: 1000,
+  transitionInterpolator: new FlyToInterpolator()
+};
 
 export default function GeospatialDeepDive() {
   const [centerCode, setCenterCode] = useState('all');
-  const [policeStation, setPoliceStation] = useState('all');
-  const [data, setData] = useState(null);
+  const [offenceCode, setOffenceCode] = useState('all');
+  const [vehicleType, setVehicleType] = useState('all');
+  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
 
-  useEffect(() => {
-    loadData();
-  }, [centerCode, policeStation]);
-
-  async function loadData() {
-    useUiStore.getState().setIsLoading(true);
-    const result = await getRegionalData(centerCode, policeStation, 'all');
-    setData(result);
-    useUiStore.getState().setIsLoading(false);
-  }
-
-  if (!data) return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto px-6 space-y-6">
-      <div className="h-64 flex items-center justify-center text-muted-foreground animate-pulse">Loading Geospatial Data...</div>
-    </div>
+  const { data: mapResult, isLoading } = useAnalyticsQuery(
+    () => AnalyticsService.getGeospatialMapData({ centerCode, offenceCode, vehicleType }),
+    [centerCode, offenceCode, vehicleType],
+    { useGlobalLoader: false }
   );
 
-  return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto px-6 md:px-8 space-y-6 animate-in fade-in duration-500 min-h-screen">
-      <div className="flex flex-col space-y-2 border-b pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Geospatial Deep Dive</h1>
-        <p className="text-muted-foreground">
-          Analyze localized enforcement metrics, station performance, and junction hotspots.
-        </p>
-      </div>
+  const handleReset = () => {
+    setCenterCode('all');
+    setOffenceCode('all');
+    setVehicleType('all');
+    setViewState(INITIAL_VIEW_STATE);
+  };
 
-      {/* Filters Row */}
-      <Card className="shadow-sm border-border/50">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-6">
-          <div className="space-y-2 flex-1">
-            <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground"><MapPin className="w-4 h-4"/> Center Code</label>
-            <Select value={centerCode} onValueChange={setCenterCode}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="All Centers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Centers</SelectItem>
-                <SelectItem value="1">Center 1</SelectItem>
-                <SelectItem value="2">Center 2</SelectItem>
-                <SelectItem value="3">Center 3</SelectItem>
-                <SelectItem value="4">Center 4</SelectItem>
-                <SelectItem value="5">Center 5</SelectItem>
-              </SelectContent>
-            </Select>
+  // Update view state when a center is selected to fly there
+  useEffect(() => {
+    if (centerCode !== 'all' && mapResult?.type === 'center-zoomed' && mapResult.data.length > 0) {
+      // Calculate average lat/lng for the selected center's points
+      const sumLat = mapResult.data.reduce((sum, p) => sum + p.latitude, 0);
+      const sumLng = mapResult.data.reduce((sum, p) => sum + p.longitude, 0);
+      const avgLat = sumLat / mapResult.data.length;
+      const avgLng = sumLng / mapResult.data.length;
+      
+      setViewState(prev => ({
+        ...prev,
+        longitude: avgLng,
+        latitude: avgLat,
+        zoom: 14,
+        pitch: 45,
+        transitionDuration: 2000,
+        transitionInterpolator: new FlyToInterpolator()
+      }));
+    } else if (centerCode === 'all') {
+      setViewState(INITIAL_VIEW_STATE);
+    }
+  }, [centerCode, mapResult]);
+
+  const layers = useMemo(() => {
+    if (!mapResult || !mapResult.data) return [];
+
+    if (mapResult.type === 'city-wide') {
+      // State A: Bubble map with counts
+      const maxTotal = Math.max(...mapResult.data.map(d => d.total), 1);
+      
+      return [
+        new ScatterplotLayer({
+          id: 'center-scatter',
+          data: mapResult.data,
+          getPosition: d => [d.longitude, d.latitude],
+          getFillColor: [255, 65, 84, 200],
+          getRadius: d => Math.sqrt(d.total / maxTotal) * 1000,
+          radiusMinPixels: 10,
+          radiusMaxPixels: 50,
+          pickable: true,
+          transitions: {
+            getRadius: 500
+          }
+        }),
+        new TextLayer({
+          id: 'center-text',
+          data: mapResult.data,
+          getPosition: d => [d.longitude, d.latitude],
+          getText: d => d.total.toLocaleString(),
+          getSize: 14,
+          getColor: [255, 255, 255],
+          getAlignmentBaseline: 'center',
+          getTextAnchor: 'middle',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 700
+        })
+      ];
+    } else {
+      // State B: Heatmap of raw points
+      return [
+        new HeatmapLayer({
+          id: 'center-heatmap',
+          data: mapResult.data,
+          getPosition: d => [d.longitude, d.latitude],
+          radiusPixels: 40,
+          intensity: 1,
+          threshold: 0.1,
+          colorRange: [
+            [25, 25, 112],
+            [0, 191, 255],
+            [124, 252, 0],
+            [255, 215, 0],
+            [255, 69, 0],
+            [255, 0, 0]
+          ],
+        })
+      ];
+    }
+  }, [mapResult]);
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] w-full m-0 p-0 overflow-hidden animate-in fade-in duration-500">
+      {/* Top Filter Bar */}
+      <div className="flex-none bg-card border-b px-6 py-3 flex items-center justify-between z-10 shadow-sm">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="w-[300px]">
+            <SearchableCombobox 
+              items={CENTERS}
+              value={centerCode}
+              onSelect={setCenterCode}
+              placeholder="Search Center (Code or Name)"
+              emptyText="No center found."
+            />
           </div>
-          <div className="space-y-2 flex-1">
-            <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground"><Building2 className="w-4 h-4"/> Police Station</label>
-            <Select value={policeStation} onValueChange={setPoliceStation}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="All Stations" />
+          <div className="w-[300px]">
+            <SearchableCombobox 
+              items={OFFENCES}
+              value={offenceCode}
+              onSelect={setOffenceCode}
+              placeholder="Search Offence (Code or Name)"
+              emptyText="No offence found."
+            />
+          </div>
+          <div className="w-[200px]">
+            <Select value={vehicleType} onValueChange={setVehicleType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Vehicle Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Stations</SelectItem>
-                {data.stations.map(s => (
-                  <SelectItem key={s.police_station} value={s.police_station}>{s.police_station}</SelectItem>
+                <SelectItem value="all">All Vehicles</SelectItem>
+                {VEHICLE_TYPES.map(vt => (
+                  <SelectItem key={vt.code} value={vt.code}>{vt.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Table View */}
-        <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
-          <CardHeader className="bg-muted/30 border-b">
-            <CardTitle>Station Performance</CardTitle>
-            <CardDescription>Violations and primary issues by station</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-auto max-h-[600px]">
-              <Table>
-                <TableHeader className="bg-muted/50 sticky top-0 z-10 shadow-sm">
-                  <TableRow>
-                    <TableHead className="font-bold">Station</TableHead>
-                    <TableHead className="text-right font-bold">Violations</TableHead>
-                    <TableHead className="font-bold">Primary Vehicle</TableHead>
-                    <TableHead className="font-bold">Primary Violation</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.stations.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No data available</TableCell>
-                    </TableRow>
-                  ) : (
-                    data.stations.map((station, i) => (
-                      <TableRow key={i} className="hover:bg-muted/30">
-                        <TableCell className="font-medium">{station.police_station}</TableCell>
-                        <TableCell className="text-right">{station.violations.toLocaleString()}</TableCell>
-                        <TableCell>{station.primary_vehicle}</TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={station.primary_violation}>
-                          {station.primary_violation}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Charts Side */}
-        <div className="space-y-6 lg:col-span-1">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="bg-muted/30 border-b pb-4">
-              <CardTitle className="text-base">Junction Hotspot Ranking</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.junctions} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
-                    <XAxis type="number" className="text-xs" tickLine={false} axisLine={false} />
-                    <YAxis dataKey="name" type="category" className="text-xs font-medium" tickLine={false} axisLine={false} width={100} />
-                    <RechartsTooltip cursor={{fill: 'hsl(var(--muted))', opacity: 0.4}} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
-                    <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="bg-muted/30 border-b pb-4">
-              <CardTitle className="text-base">Regional Violation Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data.radar}>
-                    <PolarGrid stroke="hsl(var(--border))" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
-                    <Radar name="Violations" dataKey="A" stroke="hsl(var(--primary))" strokeWidth={2} fill="hsl(var(--primary))" fillOpacity={0.4} />
-                    <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+        
+        <Button variant="ghost" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-foreground">
+          <RefreshCcw className="w-4 h-4 mr-2" />
+          Reset Filters
+        </Button>
+      </div>
+
+      {/* Map Canvas */}
+      <div className="flex-1 relative w-full h-full bg-background">
+        {isLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </div>
+        )}
+        
+        <DeckGL
+          layers={layers}
+          viewState={viewState}
+          onViewStateChange={({ viewState: newViewState }) => setViewState(newViewState)}
+          controller={true}
+          getCursor={({ isDragging }) => isDragging ? 'grabbing' : 'grab'}
+        >
+          <Map 
+            mapStyle={MAP_STYLE} 
+            reuseMaps
+            preventStyleDiffing={true}
+          />
+        </DeckGL>
       </div>
     </div>
   );

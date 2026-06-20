@@ -66,7 +66,7 @@ const data = {
           url: "/analytics/temporal",
         },
         {
-          title: "Geospatial Deep Dive",
+          title: "Geospatial Analysis",
           url: "/analytics/geospatial",
         },
         {
