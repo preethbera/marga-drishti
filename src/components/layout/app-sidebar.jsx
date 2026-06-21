@@ -75,6 +75,18 @@ const data = {
         },
       ],
     },
+    {
+      title: "Simulation",
+      url: "/simulation",
+      icon: Map,
+      isActive: false,
+      items: [
+        {
+          title: "Simulation Studio",
+          url: "/simulation/studio",
+        },
+      ],
+    },
   ],
   projects: [
     {

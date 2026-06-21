@@ -54,17 +54,42 @@ export const DatabaseService = {
         return new Uint8Array(await response.arrayBuffer());
     },
 
-    async setActiveTable(id, buffer) {
+    async mountDataset(filename, buffer) {
         const connection = await this.getConn();
-        await db.registerFileBuffer(id, buffer);
+        await db.registerFileBuffer(filename, buffer);
         
+        let tableName = filename.split('/').pop().replace('.parquet', '').replace(/[^a-zA-Z0-9_]/g, '_');
+        if (/^\d/.test(tableName)) {
+            tableName = 't_' + tableName;
+        }
+
         await connection.query(`
-            CREATE OR REPLACE VIEW traffic_violations AS 
-            SELECT * FROM read_parquet('${id.replace(/'/g, "''")}')
+            CREATE OR REPLACE VIEW ${tableName} AS 
+            SELECT * FROM read_parquet('${filename.replace(/'/g, "''")}')
         `);
         
-        const res = await connection.query(`SELECT count(*) as c FROM traffic_violations`);
+        const res = await connection.query(`SELECT count(*) as c FROM ${tableName}`);
+        return { tableName, rowCount: Number(res.toArray()[0].toJSON().c) };
+    },
+
+    async setActiveDataset(tableName) {
+        const connection = await this.getConn();
+        await connection.query(`
+            CREATE OR REPLACE VIEW active_violations AS 
+            SELECT * FROM ${tableName}
+        `);
+        const res = await connection.query(`SELECT count(*) as c FROM active_violations`);
         return Number(res.toArray()[0].toJSON().c);
+    },
+
+    async getMountedTables() {
+        const connection = await this.getConn();
+        try {
+            const res = await connection.query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'main' AND table_type = 'VIEW'`);
+            return res.toArray().map(row => row.toJSON().table_name);
+        } catch (e) {
+            return [];
+        }
     },
 
     async previewTableData(filename, source, url) {

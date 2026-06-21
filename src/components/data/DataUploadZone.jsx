@@ -2,13 +2,15 @@ import React, { useCallback, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import { useUiStore } from '@/store/useUiStore';
-import { saveToOPFS, listOPFSFiles, getFileFromOPFS } from '@/lib/opfs';
+import { saveToOPFS, listOPFSFiles } from '@/lib/opfs';
 import { DatabaseService } from '@/services/database.service';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function DataUploadZone() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // null, 'writing', 'mounting'
-  const { addLog, availableDatasets, setAvailableDatasets, setActiveDatasetId, setIsDataLoaded } = useUiStore();
+  const [datasetType, setDatasetType] = useState('violations');
+  const { addLog, availableDatasets, setAvailableDatasets, setIsDataLoaded } = useUiStore();
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
@@ -28,10 +30,10 @@ export default function DataUploadZone() {
     }
 
     try {
-      addLog(`Writing ${file.name} to OPFS...`);
+      addLog(`Writing ${file.name} to OPFS as ${datasetType}...`);
       setUploadStatus('writing');
       
-      const uniqueName = await saveToOPFS(file);
+      const uniqueName = await saveToOPFS(file, datasetType);
       const fileId = `OPFS|${uniqueName}`;
       addLog(`Successfully saved ${uniqueName} to OPFS.`);
 
@@ -44,11 +46,23 @@ export default function DataUploadZone() {
       setUploadStatus('mounting');
       addLog(`Mounting ${uniqueName} into WASM Engine...`);
       const buffer = new Uint8Array(await file.arrayBuffer());
-      const rowCount = await DatabaseService.setActiveTable(fileId, buffer);
+      const { tableName, rowCount } = await DatabaseService.mountDataset(uniqueName, buffer);
       
-      setActiveDatasetId(fileId);
-      setIsDataLoaded(true, rowCount);
-      addLog(`Mounted ${uniqueName} successfully (${rowCount.toLocaleString()} rows).`);
+      const store = useUiStore.getState();
+      const currentMounted = store.mountedDatasets || [];
+      if (!currentMounted.includes(tableName)) {
+        store.setMountedDatasets([...currentMounted, tableName]);
+      }
+      
+      // Only set as active if it's a violations dataset
+      if (datasetType === 'violations') {
+        await DatabaseService.setActiveDataset(tableName);
+        store.setActiveDatasetId(fileId);
+        setIsDataLoaded(true, store.dataRowCount + rowCount);
+        addLog(`Mounted and activated ${tableName} successfully (${rowCount.toLocaleString()} rows).`);
+      } else {
+        addLog(`Mounted ${tableName} successfully (${rowCount.toLocaleString()} rows). Background dataset loaded.`);
+      }
       
     } catch (error) {
       console.error("Error processing file:", error);
@@ -63,7 +77,7 @@ export default function DataUploadZone() {
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) processFile(file);
-  }, []);
+  }, [datasetType]);
 
   const handleFileInput = (e) => {
     const file = e.target.files?.[0];
@@ -87,11 +101,24 @@ export default function DataUploadZone() {
           </div>
         ) : (
           <>
-            <UploadCloud className="h-10 w-10 text-muted-foreground" />
-            <div className="flex flex-col gap-1">
-              <h3 className="font-semibold text-lg">Upload Local Parquet</h3>
-              <p className="text-sm text-muted-foreground">Drag and drop file here, or click to browse. File will be cached in OPFS.</p>
+            <UploadCloud className="h-8 w-8 text-muted-foreground" />
+            <div className="flex flex-col gap-1 w-full max-w-xs mx-auto">
+              <h3 className="font-semibold text-base">Upload Local Parquet</h3>
+              
+              <div className="mt-2 text-left">
+                <Select value={datasetType} onValueChange={setDatasetType}>
+                  <SelectTrigger className="w-full h-8 text-xs">
+                    <SelectValue placeholder="Select Dataset Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="violations">Violations Data</SelectItem>
+                    <SelectItem value="segments">Segments Data</SelectItem>
+                    <SelectItem value="adjacency">Adjacency Data</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             <input 
               type="file" 
               accept=".parquet" 
@@ -101,7 +128,7 @@ export default function DataUploadZone() {
             />
             <label 
               htmlFor="file-upload" 
-              className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+              className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground shadow hover:bg-primary/90 h-8 px-4 py-1"
             >
               Select File
             </label>

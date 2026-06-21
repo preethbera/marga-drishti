@@ -12,8 +12,27 @@ if (!fs.existsSync(dataDir)) {
   process.exit(0);
 }
 
-const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.parquet'));
+function getParquetFiles(dir, type = 'unknown') {
+  let results = [];
+  const list = fs.readdirSync(dir);
+  for (const file of list) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    if (stat && stat.isDirectory()) {
+      // The folder name becomes the type
+      results = results.concat(getParquetFiles(filePath, file));
+    } else if (file.endsWith('.parquet')) {
+      results.push({
+        name: type === 'unknown' ? file : `${type}/${file}`,
+        type: type
+      });
+    }
+  }
+  return results;
+}
+
+const files = getParquetFiles(dataDir);
 
 fs.writeFileSync(path.join(dataDir, 'index.json'), JSON.stringify(files, null, 2));
 console.log(`Successfully generated public/data/index.json with ${files.length} parquet files:`);
-console.log(files);
+console.log(files.map(f => f.name));

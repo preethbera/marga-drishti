@@ -1,3 +1,14 @@
 [
-  "bengaluru_analytics_30k.parquet"
+  {
+    "name": "adjacency/bengaluru_adjacency.parquet",
+    "type": "adjacency"
+  },
+  {
+    "name": "segments/bengaluru_segments_optimized.parquet",
+    "type": "segments"
+  },
+  {
+    "name": "violations/final_violations_dataset.parquet",
+    "type": "violations"
+  }
 ]

@@ -25,6 +25,7 @@ export const useUiStore = create(persist((set) => ({
   dataRowCount: 0,
   logs: [],
   availableDatasets: [],
+  mountedDatasets: [],
   activeDatasetId: null,
 
   setViewport: (viewportUpdate) => set((state) => ({
@@ -39,8 +40,9 @@ export const useUiStore = create(persist((set) => ({
   setIsDataLoaded: (isDataLoaded, dataRowCount = 0) => set({ isDataLoaded, dataRowCount }),
   addLog: (message) => set((state) => ({ logs: [...state.logs, { time: new Date().toLocaleTimeString(), message }] })),
   setAvailableDatasets: (datasets) => set({ availableDatasets: datasets }),
+  setMountedDatasets: (datasets) => set({ mountedDatasets: datasets }),
   setActiveDatasetId: (id) => set({ activeDatasetId: id }),
 }), {
   name: 'marga-drishti-storage',
-  partialize: (state) => ({ activeDatasetId: state.activeDatasetId }),
+  partialize: (state) => ({ mountedDatasets: state.mountedDatasets, activeDatasetId: state.activeDatasetId }),
 }));

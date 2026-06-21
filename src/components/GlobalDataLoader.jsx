@@ -20,7 +20,11 @@ export async function initializeAppData() {
       const indexRes = await fetch('/data/index.json');
       if (indexRes.ok) {
         const potentialDefaults = await indexRes.json();
-        for (const filename of potentialDefaults) {
+        for (const fileData of potentialDefaults) {
+          const filename = typeof fileData === 'string' ? fileData : fileData.name;
+          const type = typeof fileData === 'string' ? 'unknown' : fileData.type;
+          const displayName = filename.includes('/') ? filename.split('/').pop() : filename;
+          
           const url = `/data/${filename}`;
           try {
             const res = await fetch(url, { method: 'HEAD' });
@@ -30,7 +34,9 @@ export async function initializeAppData() {
               defaultFiles.push({
                 id: `System Default|${filename}`,
                 name: filename,
+                displayName: displayName,
                 source: 'System Default',
+                type: type,
                 url: url,
                 size: sizeHeader ? parseInt(sizeHeader, 10) : 0
               });
@@ -52,33 +58,49 @@ export async function initializeAppData() {
       return;
     }
 
-    // 2. Pick which dataset to mount: previously active (persisted) or first available
+    // 2. Mount all datasets into DuckDB
+    const mountedTables = [];
+    let totalRowCount = 0;
+
+    for (const file of allDatasets) {
+      store.addLog(`Mounting ${file.name}...`);
+      try {
+        let buffer;
+        if (file.source === 'System Default') {
+          buffer = await DatabaseService.fetchSystemDefault(file.url);
+        } else {
+          const opfsFile = await getFileFromOPFS(file.name);
+          buffer = new Uint8Array(await opfsFile.arrayBuffer());
+        }
+
+        const { tableName, rowCount } = await DatabaseService.mountDataset(file.name, buffer);
+        mountedTables.push(tableName);
+        totalRowCount += rowCount;
+        store.addLog(`Mounted ${file.name} successfully (${rowCount.toLocaleString()} rows).`);
+      } catch (err) {
+        store.addLog(`Failed to mount ${file.name}: ${err.message}`);
+      }
+    }
+
+    // 3. Set the active dataset if there is one
     const persistedId = store.activeDatasetId;
     let targetFile = persistedId
       ? allDatasets.find(f => f.id === persistedId)
       : null;
 
     if (!targetFile) {
-      targetFile = allDatasets[0];
+      targetFile = allDatasets.find(f => f.type === 'violations') || allDatasets.find(f => f.name.includes('violations')) || allDatasets[0];
     }
 
-    // 3. Mount it into DuckDB
-    store.addLog(`Mounting ${targetFile.name}...`);
-
-    let buffer;
-    if (targetFile.source === 'System Default') {
-      buffer = await DatabaseService.fetchSystemDefault(targetFile.url);
-    } else {
-      const opfsFile = await getFileFromOPFS(targetFile.name);
-      buffer = new Uint8Array(await opfsFile.arrayBuffer());
+    if (targetFile) {
+      const activeTableName = targetFile.name.split('/').pop().replace('.parquet', '').replace(/[^a-zA-Z0-9_]/g, '_');
+      await DatabaseService.setActiveDataset(activeTableName);
+      store.setActiveDatasetId(targetFile.id);
     }
-
-    const rowCount = await DatabaseService.setActiveTable(targetFile.id, buffer);
 
     // 4. Signal to the entire app that data is ready
-    store.setActiveDatasetId(targetFile.id);
-    store.setIsDataLoaded(true, rowCount);
-    store.addLog(`Mounted successfully (${rowCount.toLocaleString()} rows).`);
+    store.setMountedDatasets(mountedTables);
+    store.setIsDataLoaded(true, totalRowCount);
 
   } catch (e) {
     store.addLog(`Initialization Error: ${e.message}`);

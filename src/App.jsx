@@ -11,6 +11,7 @@ import Settings from "@/pages/Settings";
 import DataManagement from "@/pages/DataManagement";
 import AnalyticsGuard from "@/components/layout/AnalyticsGuard";
 import { initializeAppData } from "@/components/GlobalDataLoader";
+import SimulationStudio from "@/features/simulation/SimulationStudio";
 
 // Fire data initialization immediately on module load.
 // This runs before any React component mounts, eliminating race conditions.
@@ -33,6 +34,7 @@ export default function App() {
             
             <Route path="data-ingestion" element={<DataManagement />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="simulation/studio" element={<SimulationStudio />} />
             
             <Route path="*" element={<Navigate to="/analytics/executive" replace />} />
           </Route>

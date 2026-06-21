@@ -10,33 +10,25 @@ import { getFileFromOPFS, deleteFromOPFS, listOPFSFiles } from '@/lib/opfs';
 import DataPreviewSheet from './DataPreviewSheet';
 
 export default function DataRegistryTable() {
-  const { availableDatasets, setAvailableDatasets, activeDatasetId, setActiveDatasetId, setIsDataLoaded, addLog } = useUiStore();
+  const { availableDatasets, setAvailableDatasets, mountedDatasets, activeDatasetId, setActiveDatasetId, setIsDataLoaded, addLog } = useUiStore();
   const [previewFile, setPreviewFile] = useState(null);
-  const [mountingId, setMountingId] = useState(null);
+  const [activatingId, setActivatingId] = useState(null);
 
   const handleSetActive = async (fileMetadata) => {
     try {
-      setMountingId(fileMetadata.id);
-      addLog(`Mounting ${fileMetadata.name}...`);
+      setActivatingId(fileMetadata.id);
+      addLog(`Setting ${fileMetadata.name} as active dataset...`);
       
-      // Yield to let React render the optimistic mounting state
-      await new Promise(resolve => setTimeout(resolve, 10));
-      let buffer;
-      if (fileMetadata.source === 'System Default') {
-        buffer = await DatabaseService.fetchSystemDefault(fileMetadata.url);
-      } else {
-        const opfsFile = await getFileFromOPFS(fileMetadata.name);
-        buffer = new Uint8Array(await opfsFile.arrayBuffer());
-      }
+      const tableName = fileMetadata.name.split('/').pop().replace('.parquet', '').replace(/[^a-zA-Z0-9_]/g, '_');
+      const rowCount = await DatabaseService.setActiveDataset(tableName);
       
-      const rowCount = await DatabaseService.setActiveTable(fileMetadata.id, buffer);
       setActiveDatasetId(fileMetadata.id);
-      setIsDataLoaded(true, rowCount);
-      addLog(`Mounted ${fileMetadata.name} successfully (${rowCount.toLocaleString()} rows).`);
+      setIsDataLoaded(true, rowCount); // this might overwrite total loaded count, but that's fine for now or we keep it as is
+      addLog(`Activated ${fileMetadata.name} successfully.`);
     } catch (e) {
-      addLog(`Failed to mount ${fileMetadata.name}: ${e.message}`);
+      addLog(`Failed to activate ${fileMetadata.name}: ${e.message}`);
     } finally {
-      setMountingId(null);
+      setActivatingId(null);
     }
   };
 
@@ -44,17 +36,6 @@ export default function DataRegistryTable() {
     if (fileMetadata.source === 'System Default') return; // Protected
     
     try {
-      if (activeDatasetId === fileMetadata.id) {
-        addLog(`Active Protection Guard triggered. Falling back to System Default before deletion.`);
-        const sysDefs = availableDatasets.filter(d => d.source === 'System Default');
-        if (sysDefs.length > 0) {
-           await handleSetActive(sysDefs[0]);
-        } else {
-           setIsDataLoaded(false, 0);
-           setActiveDatasetId(null);
-        }
-      }
-
       await deleteFromOPFS(fileMetadata.name);
       addLog(`Deleted ${fileMetadata.name} from OPFS.`);
       
@@ -78,6 +59,7 @@ export default function DataRegistryTable() {
         <TableHeader>
           <TableRow>
             <TableHead>Dataset Name</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead>Source</TableHead>
             <TableHead>File Size</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -85,14 +67,24 @@ export default function DataRegistryTable() {
         </TableHeader>
         <TableBody>
           {availableDatasets.map((file) => {
+            const tableName = file.name.split('/').pop().replace('.parquet', '').replace(/[^a-zA-Z0-9_]/g, '_');
+            const isMounted = mountedDatasets?.includes(tableName) || mountedDatasets?.includes('t_' + tableName);
             const isActive = activeDatasetId === file.id;
-            const isMounting = mountingId === file.id;
+            const isActivating = activatingId === file.id;
+            const isViolations = file.type === 'violations';
+
             return (
-              <TableRow key={file.id} className={isActive ? 'bg-muted/50' : ''}>
+              <TableRow key={file.id} className={isActive ? 'bg-primary/5' : (isMounted ? 'bg-muted/50' : '')}>
                 <TableCell className="font-medium">
-                  {file.name}
-                  {isActive && !isMounting && <Badge variant="secondary" className="ml-2 text-xs">ACTIVE</Badge>}
-                  {isMounting && <Badge variant="outline" className="ml-2 text-xs border-primary text-primary animate-pulse">MOUNTING...</Badge>}
+                  {file.displayName || file.name.split('/').pop()}
+                  {isMounted && !isActive && <Badge variant="secondary" className="ml-2 text-xs">MOUNTED</Badge>}
+                  {isActive && <Badge variant="default" className="ml-2 text-xs">ACTIVE</Badge>}
+                  {isActivating && <Badge variant="outline" className="ml-2 text-xs border-primary text-primary animate-pulse">ACTIVATING...</Badge>}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="capitalize">
+                    {file.type || 'unknown'}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge variant={file.source === 'System Default' ? 'outline' : 'default'}>
@@ -101,15 +93,17 @@ export default function DataRegistryTable() {
                 </TableCell>
                 <TableCell className="font-mono text-muted-foreground">{formatSize(file.size)}</TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={isActive || mountingId !== null}
-                    onClick={() => handleSetActive(file)}
-                  >
-                    {isMounting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Play className="w-4 h-4 mr-1" />}
-                    {isMounting ? "Loading..." : "Set Active"}
-                  </Button>
+                  {isViolations && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={isActive || activatingId !== null || !isMounted}
+                      onClick={() => handleSetActive(file)}
+                    >
+                      {isActivating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Play className="w-4 h-4 mr-1" />}
+                      {isActivating ? "Activating..." : "Set Active"}
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     size="sm"

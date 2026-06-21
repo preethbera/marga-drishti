@@ -49,7 +49,6 @@ export default function ExploratorySandbox() {
   const dimensions = [
     { value: 'vehicle_type', label: 'Vehicle Type' },
     { value: 'offence_code', label: 'Offence Code' },
-    { value: 'police_station', label: 'Police Station' },
     { value: 'center_code', label: 'Center Code' },
   ];
 

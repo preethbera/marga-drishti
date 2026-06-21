@@ -2,7 +2,7 @@ export async function getOpfsRoot() {
   return await navigator.storage.getDirectory();
 }
 
-export async function saveToOPFS(file) {
+export async function saveToOPFS(file, type = 'violations') {
   const root = await getOpfsRoot();
   let baseName = file.name;
   let extension = '';
@@ -12,7 +12,9 @@ export async function saveToOPFS(file) {
     extension = file.name.substring(lastDot);
   }
 
-  let uniqueName = file.name;
+  // Prefix with type to save metadata
+  const typePrefix = `${type}___`;
+  let uniqueName = `${typePrefix}${file.name}`;
   let counter = 1;
   let fileHandle = null;
 
@@ -21,7 +23,7 @@ export async function saveToOPFS(file) {
       // Try to get handle without creating. If it exists, this succeeds.
       await root.getFileHandle(uniqueName);
       // If we are here, file exists. We must rename.
-      uniqueName = `${baseName}_(${counter})${extension}`;
+      uniqueName = `${typePrefix}${baseName}_(${counter})${extension}`;
       counter++;
     } catch (e) {
       if (e.name === 'NotFoundError') {
@@ -47,11 +49,23 @@ export async function listOPFSFiles() {
   for await (const handle of root.values()) {
     if (handle.kind === 'file' && handle.name.endsWith('.parquet')) {
       const file = await handle.getFile();
+      
+      // Parse out the type prefix
+      let type = 'unknown';
+      let displayName = handle.name;
+      const separatorIndex = handle.name.indexOf('___');
+      if (separatorIndex !== -1) {
+        type = handle.name.substring(0, separatorIndex);
+        displayName = handle.name.substring(separatorIndex + 3);
+      }
+
       files.push({
         id: `OPFS|${handle.name}`,
-        name: handle.name,
+        name: handle.name, // The full internal name for fetching/deleting
+        displayName: displayName, // UI display name
         size: file.size,
         source: 'OPFS',
+        type: type
       });
     }
   }
