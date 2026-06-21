@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import { GridlockAlert } from '../../simulation/components/GridlockAlert';
 import { useNetworkStore } from '../useNetworkStore';
 import { useNetworkAggregate, useSegmentDetail } from '../useNetworkHooks';
