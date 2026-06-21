@@ -313,5 +313,97 @@ export const AnalyticsService = {
             // Probably segment_id column doesn't exist
             return [];
         }
+    },
+
+    async getNetworkAggregate(startTime, endTime, roadClasses) {
+        const conn = await DatabaseService.getConn();
+        
+        const tablesRes = await conn.query(`SHOW TABLES`);
+        const tables = tablesRes.toArray().map(r => r.toJSON().name);
+        
+        if (!tables.includes('bengaluru_segments_optimized') || !tables.includes('active_violations')) {
+            return { status: 'empty', rawSegments: [], rawViolations: [] };
+        }
+
+        let timeFilter = '';
+        if (startTime && endTime) {
+            const s = new Date(startTime).toISOString();
+            const e = new Date(endTime).toISOString();
+            timeFilter = `WHERE try_cast(created_datetime as timestamp) >= try_cast('${s}' as timestamp) AND try_cast(created_datetime as timestamp) <= try_cast('${e}' as timestamp)`;
+        }
+
+        let violData = [];
+        try {
+            const violRes = await conn.query(`
+                SELECT CAST(segment_id AS INTEGER) as segment_id, vehicle_type, CAST(count(*) AS INTEGER) as count
+                FROM active_violations
+                ${timeFilter}
+                GROUP BY segment_id, vehicle_type
+            `);
+            violData = violRes.toArray().map(r => r.toJSON());
+        } catch (e) {
+            console.warn("Failed to aggregate violations", e);
+        }
+
+        let classFilter = '';
+        if (roadClasses && roadClasses.length > 0) {
+            const classList = roadClasses.map(c => `'${c}'`).join(',');
+            classFilter = `WHERE road_class IN (${classList})`;
+        }
+
+        let segData = [];
+        try {
+            const segRes = await conn.query(`
+                SELECT 
+                    CAST(segment_id AS INTEGER) as segment_id, 
+                    CAST(width_m AS DOUBLE) as width_m, 
+                    road_class, 
+                    CAST(lanes AS INTEGER) as lanes, 
+                    CAST(length_m AS DOUBLE) as length_m, 
+                    geometry
+                FROM bengaluru_segments_optimized
+                ${classFilter}
+            `);
+            segData = segRes.toArray().map(r => r.toJSON());
+        } catch (e) {
+            console.warn("Failed to fetch segments", e);
+            return { status: 'error', rawSegments: [], rawViolations: [] };
+        }
+
+        return {
+            status: segData.length > 0 ? 'success' : 'empty',
+            rawSegments: segData,
+            rawViolations: violData
+        };
+    },
+
+    async getAdjacencyList() {
+        const conn = await DatabaseService.getConn();
+        const tablesRes = await conn.query(`SHOW TABLES`);
+        const tables = tablesRes.toArray().map(r => r.toJSON().name);
+        
+        if (!tables.includes('bengaluru_adjacency')) {
+            return new Map();
+        }
+
+        try {
+            const res = await conn.query(`
+                SELECT CAST(segment_id AS INTEGER) as segment_id, CAST(connected_segment_id AS INTEGER) as connected_segment_id
+                FROM bengaluru_adjacency
+            `);
+            const map = new Map();
+            res.toArray().forEach(r => {
+                const row = r.toJSON();
+                const from = row.segment_id;
+                const to = row.connected_segment_id;
+                
+                if (!map.has(from)) map.set(from, []);
+                map.get(from).push(to);
+            });
+            return map;
+        } catch (e) {
+            console.warn("Failed to build adjacency list", e);
+            return new Map();
+        }
     }
 };

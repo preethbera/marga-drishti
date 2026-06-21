@@ -33,6 +33,14 @@ export const DatabaseService = {
             await newDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
             const newConn = await newDb.connect();
             
+            // Try to load spatial extension for ST_AsGeoJSON support
+            try {
+                await newConn.query('INSTALL spatial;');
+                await newConn.query('LOAD spatial;');
+            } catch (e) {
+                console.warn('Failed to load spatial extension', e);
+            }
+            
             db = newDb;
             conn = newConn;
             return { db, conn };

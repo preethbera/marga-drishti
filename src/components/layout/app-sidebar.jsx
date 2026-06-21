@@ -85,6 +85,10 @@ const data = {
           title: "Simulation Studio",
           url: "/simulation/studio",
         },
+        {
+          title: "Network Intelligence",
+          url: "/network/intelligence",
+        },
       ],
     },
   ],
