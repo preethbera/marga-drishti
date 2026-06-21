@@ -1,53 +1,30 @@
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import { Info, Loader2 } from 'lucide-react';
 import DeckGL from '@deck.gl/react';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useNetworkStore } from '../useNetworkStore';
-import { useNetworkAggregate, useCongestionCascade, useAdjacencyList } from '../useNetworkHooks';
-import { NETWORK_CONFIG, interpolateColor } from '../networkConfig';
+import { NETWORK_CONFIG, interpolateColor } from '@features/network/networkConfig';
 
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-export function CapacityMap() {
-  const { status, data } = useNetworkAggregate();
-  const adjacencyMap = useAdjacencyList();
-  
-  const { 
-    selectedSegmentId, 
-    selectSegment, 
-    cascadeOriginSegmentId,
-    cascadeMaxHops,
-    cascadeDecayFactor
-  } = useNetworkStore();
-
-  const cascadeSegments = useCongestionCascade(
-    adjacencyMap, 
-    data, 
-    cascadeOriginSegmentId, 
-    cascadeMaxHops, 
-    cascadeDecayFactor
-  );
-
-  const cascadeSet = useMemo(() => new Set(cascadeSegments.map(c => c.segmentId)), [cascadeSegments]);
+export function CapacityMap({ 
+  status, 
+  features, 
+  cascadeSet, 
+  cascadeSegments, 
+  cascadeOriginSegmentId, 
+  onSegmentClick 
+}) {
 
   const layers = useMemo(() => {
-    if (!data || data.length === 0) return [];
+    if (!features || features.length === 0) return [];
 
     const geoJsonData = {
       type: 'FeatureCollection',
-      features: data
-        .filter(seg => seg.capacityReduction > 0 || seg.segment_id === cascadeOriginSegmentId)
-        .map(seg => ({
-          type: 'Feature',
-          geometry: typeof seg.geometry === 'string' ? JSON.parse(seg.geometry) : seg.geometry,
-        properties: {
-          ...seg
-        }
-      }))
+      features
     };
 
     return [
@@ -63,11 +40,11 @@ export function CapacityMap() {
         getLineWidth: d => d.properties.road_class === 'Arterial' ? 6 : (d.properties.road_class === 'Sub-Arterial' ? 5 : 4),
         onClick: (info) => {
           if (info.object) {
-            selectSegment(info.object.properties.segment_id);
+            onSegmentClick?.(info.object.properties.segment_id);
           }
         },
         updateTriggers: {
-          getLineColor: [data] // depends only on capacityReduction which is inside data
+          getLineColor: [features] // depends only on capacityReduction which is inside features
         }
       }),
       
@@ -97,7 +74,7 @@ export function CapacityMap() {
         }
       }) : null
     ].filter(Boolean);
-  }, [data, cascadeOriginSegmentId, cascadeSegments, cascadeSet, selectSegment]);
+  }, [features, cascadeOriginSegmentId, cascadeSegments, cascadeSet, onSegmentClick]);
 
   const getTooltip = ({ object }) => {
     if (!object) return null;
@@ -110,7 +87,7 @@ PCU Blocked: ${p.PCU_parked.toFixed(1)}
 Violations: ${p.violationCount}`;
   };
 
-  if (status === 'error' || (status === 'empty' && data.length === 0)) {
+  if (status === 'error' || (status === 'empty' && (!features || features.length === 0))) {
     return (
       <Card className="h-[500px] flex items-center justify-center">
         <Alert className="max-w-md">

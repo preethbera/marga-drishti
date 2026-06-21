@@ -1,9 +1,9 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useSimulationStore } from '../useSimulationStore';
-import { useSimulationDerived } from '../useSimulationHooks';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { useSimulationStore } from '@core/store/useSimulationStore';
+import { useSimulationDerived } from '@core/hooks/useSimulationHooks';
 import { SIMULATION_CHART_CONFIG } from '../simulationConfig';
-import { MODEL_CONSTANTS } from '../modelEngine';
+import { MODEL_CONSTANTS } from '@core/simulation/modelEngine';
 
 export function RoadCrossSection() {
   const { W_total, PCU_parked, K } = useSimulationStore();

@@ -1,27 +1,22 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { GridlockAlert } from '../../simulation/components/GridlockAlert';
-import { useNetworkStore } from '../useNetworkStore';
-import { useNetworkAggregate, useSegmentDetail } from '../useNetworkHooks';
-import { SIMULATION_CHART_CONFIG } from '../../simulation/simulationConfig';
-import { MODEL_CONSTANTS } from '../../simulation/modelEngine';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Badge } from '@components/ui/badge';
+import { Button } from '@components/ui/button';
+import { Slider } from '@components/ui/slider';
+import { Label } from '@components/ui/label';
+import { SIMULATION_CHART_CONFIG } from '@features/simulation/simulationConfig';
+import { GridlockAlert } from '@features/simulation/components/GridlockAlert';
+import { MODEL_CONSTANTS } from '@core/simulation/modelEngine';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceDot, ReferenceLine, ResponsiveContainer } from 'recharts';
 
-export function SegmentInspector() {
-  const { data } = useNetworkAggregate();
-  const { 
-    selectedSegmentId, 
-    referenceK, 
-    setReferenceK,
-    clearSelectedSegment,
-    setCascadeOrigin
-  } = useNetworkStore();
-
-  const detail = useSegmentDetail(data, selectedSegmentId, referenceK);
+export function SegmentInspector({
+  selectedSegmentId,
+  detail,
+  referenceK,
+  setReferenceK,
+  clearSelectedSegment,
+  setCascadeOrigin
+}) {
 
   if (!selectedSegmentId) {
     return (

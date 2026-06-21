@@ -1,94 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@components/ui/command';
+import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Skeleton } from '@components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
+import { Switch } from '@components/ui/switch';
 import { Info, ChevronDown, Check } from 'lucide-react';
-import { AnalyticsService } from '@/services/analytics.service';
-import { useSimulationStore } from '../useSimulationStore';
-import { useUiStore } from '@/store/useUiStore';
-import { getPCU } from '../modelEngine';
+import { ARCHETYPAL_PRESETS } from '@core/hooks/usePresetLibraryData';
+import { useSimulationStore } from '@core/store/useSimulationStore';
 
-const ARCHETYPAL_PRESETS = [
-  { segment_id: 'archetype_1', name: 'Narrow Local Road', width_m: 5.0, road_class: 'local', lanes: 1 },
-  { segment_id: 'archetype_2', name: 'Standard Two-Lane Arterial', width_m: 7.2, road_class: 'arterial', lanes: 2 },
-  { segment_id: 'archetype_3', name: 'Wide Sub-Arterial', width_m: 10.0, road_class: 'sub_arterial', lanes: 3 },
-  { segment_id: 'archetype_4', name: 'Wide Arterial / Boulevard', width_m: 14.0, road_class: 'arterial', lanes: 4 },
-];
-
-export function PresetLibrary() {
-  const { applyPreset, selectedPresetId } = useSimulationStore();
-  const isDataLoaded = useUiStore(state => state.isDataLoaded);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [presets, setPresets] = useState([]);
-  const [loadViolationPCU, setLoadViolationPCU] = useState(false);
-  const [fallbackToArchetypes, setFallbackToArchetypes] = useState(false);
-
-  useEffect(() => {
-    if (!isDataLoaded) return;
-    
-    async function fetchPresets() {
-      setLoading(true);
-      try {
-        const segments = await AnalyticsService.getSegmentPresets();
-        if (!segments || segments.length === 0) {
-          setFallbackToArchetypes(true);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch violation PCU optionally
-        const violations = await AnalyticsService.getSegmentWithViolationPCU();
-        
-        // Aggregate PCU per segment
-        const segmentPCU = {};
-        if (violations && violations.length > 0) {
-          violations.forEach(v => {
-            const seg = String(v.segment_id);
-            const pcuValue = getPCU(v.vehicle_type) * v.c;
-            segmentPCU[seg] = (segmentPCU[seg] || 0) + pcuValue;
-          });
-        }
-
-        const enriched = segments.map(seg => ({
-          ...seg,
-          pcu_current: segmentPCU[seg.segment_id]
-        }));
-
-        setPresets(enriched);
-        setFallbackToArchetypes(false);
-      } catch (e) {
-        console.error("Failed to load presets", e);
-        setFallbackToArchetypes(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPresets();
-  }, [isDataLoaded]);
-
-  const handleSelect = (preset) => {
-    applyPreset({
-      ...preset,
-      pcu_current: loadViolationPCU ? preset.pcu_current : undefined
-    });
-    setOpen(false);
-  };
+export function PresetLibrary({
+  open, setOpen,
+  loading,
+  loadViolationPCU, setLoadViolationPCU,
+  fallbackToArchetypes,
+  activePresets,
+  handleSelect,
+  selectedPresetObj,
+  selectedPresetId,
+  isDataLoaded
+}) {
 
   const handleClear = () => {
     useSimulationStore.getState().setSelectedPresetId(null);
     setOpen(false);
   };
 
-  const selectedPreset = [...presets, ...ARCHETYPAL_PRESETS].find(p => p.segment_id === selectedPresetId);
+  const selectedPreset = selectedPresetObj;
 
   // Grouping segments
-  const groupedPresets = presets.reduce((acc, curr) => {
+  const groupedPresets = activePresets.reduce((acc, curr) => {
     if (!acc[curr.road_class]) acc[curr.road_class] = [];
     acc[curr.road_class].push(curr);
     return acc;

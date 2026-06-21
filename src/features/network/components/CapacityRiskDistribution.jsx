@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useNetworkAggregate, useNetworkKPIs } from '../useNetworkHooks';
+import { useNetworkAggregate, useNetworkKPIs } from '@core/hooks/useNetworkHooks';
 import { SIMULATION_CHART_CONFIG } from '../../simulation/simulationConfig';
 
 const CustomTooltip = ({ active, payload }) => {
@@ -18,11 +18,8 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export function CapacityRiskDistribution() {
-  const { status, data } = useNetworkAggregate();
-  const kpis = useNetworkKPIs(data);
-
-  if (status === 'error' || (status === 'empty' && data.length === 0)) {
+export function CapacityRiskDistribution({ isHidden, chartData }) {
+  if (isHidden) {
     return (
       <Card className="h-full min-h-[300px] flex items-center justify-center">
         <p className="text-muted-foreground">No data available</p>
@@ -30,27 +27,6 @@ export function CapacityRiskDistribution() {
     );
   }
 
-  // Use the KPI counts to build pie chart data
-  const chartData = [
-    { 
-      name: 'Safe (<20% loss)', 
-      value: kpis?.safeCount || 0, 
-      length_km: ((kpis?.totalLength || 0) - (kpis?.criticalLength || 0)) / 1000, // Approximate safe+marginal length split not tracked perfectly in KPIs, but for simplicity
-      color: SIMULATION_CHART_CONFIG.riskZones.safe.color 
-    },
-    { 
-      name: 'Marginal (20-50% loss)', 
-      value: kpis?.marginalCount || 0, 
-      length_km: 0, // In a real implementation, we'd add marginalLength to the KPI hook, let's keep it simple
-      color: SIMULATION_CHART_CONFIG.riskZones.marginal.color 
-    },
-    { 
-      name: 'Critical (>50% loss)', 
-      value: kpis?.criticalCount || 0, 
-      length_km: (kpis?.criticalLength || 0) / 1000,
-      color: SIMULATION_CHART_CONFIG.riskZones.critical.color 
-    }
-  ].filter(d => d.value > 0);
 
   return (
     <Card className="h-full flex flex-col">

@@ -1,56 +1,20 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { useSimulationStore } from '../useSimulationStore';
-import { useSimulationDerived } from '../useSimulationHooks';
-import { SIMULATION_CHART_CONFIG } from '../simulationConfig';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Progress } from '@components/ui/progress';
+import { SIMULATION_CHART_CONFIG } from '@features/simulation/simulationConfig';
 
-export function GridlockGauge() {
-  const { K } = useSimulationStore();
-  const derived = useSimulationDerived(useSimulationStore.getState().W_total, useSimulationStore.getState().PCU_parked, K);
-  const { K_j_eff, isGridlocked } = derived;
-
+export function GridlockGauge({
+  K,
+  K_j_eff,
+  isGridlocked,
+  arcColor,
+  zoneLabel,
+  fillRatio,
+  strokeDasharray,
+  strokeDashoffset,
+  d
+}) {
   const validKj = K_j_eff > 1;
-  const fillRatio = validKj ? Math.min(K / K_j_eff, 1.0) : 1.0;
-  
-  let arcColor = SIMULATION_CHART_CONFIG.gridlock.color;
-  let zoneLabel = 'Gridlocked';
-  
-  if (validKj && !isGridlocked) {
-    if (fillRatio < SIMULATION_CHART_CONFIG.riskZones.safe.threshold) {
-      arcColor = SIMULATION_CHART_CONFIG.riskZones.safe.color;
-      zoneLabel = SIMULATION_CHART_CONFIG.riskZones.safe.label;
-    } else if (fillRatio < SIMULATION_CHART_CONFIG.riskZones.marginal.threshold) {
-      arcColor = SIMULATION_CHART_CONFIG.riskZones.marginal.color;
-      zoneLabel = SIMULATION_CHART_CONFIG.riskZones.marginal.label;
-    } else {
-      arcColor = SIMULATION_CHART_CONFIG.riskZones.critical.color;
-      zoneLabel = SIMULATION_CHART_CONFIG.riskZones.critical.label;
-    }
-  }
-
-  // SVG arc math
-  // 270 degree arc from 135 deg to 405 deg.
-  // Center (100, 100), radius 80.
-  // Circumference of full circle = 2 * PI * 80 = 502.65
-  // Arc length for 270 deg = 502.65 * 0.75 = 376.99
-  const radius = 80;
-  const circumference = 2 * Math.PI * radius;
-  const arcLength = circumference * 0.75;
-  const strokeDasharray = `${arcLength} ${circumference}`;
-  const strokeDashoffset = arcLength - (fillRatio * arcLength);
-
-  // SVG path drawing a 270 arc (from 135 deg to 405 deg)
-  // To start at 135 deg (bottom left):
-  // x = 100 + 80 * cos(135 deg) = 100 + 80 * (-0.707) = 43.43
-  // y = 100 + 80 * sin(135 deg) = 100 + 80 * (0.707) = 156.57
-  // End at 405 deg (bottom right, equivalent to 45 deg):
-  // x = 100 + 80 * cos(45) = 100 + 80 * 0.707 = 156.57
-  // y = 100 + 80 * sin(45) = 100 + 80 * 0.707 = 156.57
-  // Large arc flag = 1 (since 270 > 180)
-  // Sweep flag = 1 (clockwise)
-  const d = `M 43.43 156.57 A 80 80 0 1 1 156.57 156.57`;
-
   return (
     <Card className="h-full flex flex-col justify-between">
       <CardHeader className="pb-2">

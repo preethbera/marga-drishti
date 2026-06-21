@@ -1,9 +1,9 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { useNetworkAggregate, useRoadClassBreakdown } from '../useNetworkHooks';
-import { useNetworkStore } from '../useNetworkStore';
-import { interpolateColor } from '../networkConfig';
+import { useNetworkAggregate, useRoadClassBreakdown } from '@core/hooks/useNetworkHooks';
+import { useNetworkStore } from '@core/store/useNetworkStore';
+import { interpolateColor } from '@features/network/networkConfig';
 import { SIMULATION_CHART_CONFIG } from '../../simulation/simulationConfig';
 
 const CustomTooltip = ({ active, payload }) => {
@@ -22,12 +22,13 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export function RoadClassBreakdown() {
-  const { status, data } = useNetworkAggregate();
-  const breakdown = useRoadClassBreakdown(data);
-  const { toggleRoadClass, roadClassFilter } = useNetworkStore();
-
-  if (status === 'error' || (status === 'empty' && data.length === 0)) {
+export function RoadClassBreakdown({
+  isHidden,
+  breakdown,
+  roadClassFilter,
+  handleBarClick
+}) {
+  if (isHidden) {
     return (
       <Card className="h-full min-h-[300px] flex items-center justify-center">
         <p className="text-muted-foreground">No data available</p>
@@ -35,9 +36,6 @@ export function RoadClassBreakdown() {
     );
   }
 
-  const handleBarClick = (entry) => {
-    toggleRoadClass(entry.name);
-  };
 
   return (
     <Card className="h-full flex flex-col">

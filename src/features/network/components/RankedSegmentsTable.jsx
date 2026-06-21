@@ -1,34 +1,25 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Badge } from '@components/ui/badge';
+import { Button } from '@components/ui/button';
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNetworkStore } from '../useNetworkStore';
-import { useNetworkAggregate, useRankedSegments } from '../useNetworkHooks';
-import { interpolateColor } from '../networkConfig';
+import { interpolateColor } from '@features/network/networkConfig';
 
-export function RankedSegmentsTable() {
-  const { data, status } = useNetworkAggregate();
-  const { 
-    sortColumn, 
-    sortDirection, 
-    setSort, 
-    selectedSegmentId, 
-    selectSegment,
-    cascadeOriginSegmentId
-  } = useNetworkStore();
-
-  const sortedData = useRankedSegments(data, sortColumn, sortDirection);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 20;
-
-  if (status === 'error' || (status === 'empty' && data.length === 0)) {
-    return null; // Handled by page level or KPI strip
-  }
-
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
-  const currentRows = sortedData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+export function RankedSegmentsTable({
+  isHidden,
+  currentRows,
+  currentPage,
+  totalPages,
+  totalSegments,
+  setCurrentPage,
+  sortColumn,
+  sortDirection,
+  handleHeaderClick,
+  selectedSegmentId,
+  selectSegment,
+  cascadeOriginSegmentId
+}) {
+  if (isHidden) return null;
 
   const SortIcon = ({ column }) => {
     if (sortColumn !== column) return null;
@@ -46,17 +37,12 @@ export function RankedSegmentsTable() {
     { key: 'capacityReduction', label: 'Capacity Loss (%)' }
   ];
 
-  const handleHeaderClick = (key) => {
-    setSort(key);
-    setCurrentPage(1); // Reset to first page on sort
-  };
-
   return (
     <Card className="w-full flex flex-col">
       <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Network Segment Details</CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{sortedData.length} total segments</span>
+          <span>{totalSegments} total segments</span>
         </div>
       </CardHeader>
       <CardContent className="p-0 overflow-x-auto">

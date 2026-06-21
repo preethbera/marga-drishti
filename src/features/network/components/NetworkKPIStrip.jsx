@@ -1,22 +1,21 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@components/ui/card';
+import { Skeleton } from '@components/ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import { Info } from 'lucide-react';
 import { SIMULATION_CHART_CONFIG } from '../../simulation/simulationConfig';
-import { MetricCard } from '@/components/dashboard/MetricCard';
-import { useNetworkAggregate, useNetworkKPIs } from '../useNetworkHooks';
+import { MetricCard } from '@components/custom/MetricCard';
+export function NetworkKPIStrip({
+  isError,
+  isEmpty,
+  isLoading,
+  kpis,
+  unmatchedStr,
+  avgColor
+}) {
+  if (isError) return null;
 
-export function NetworkKPIStrip() {
-  const { status, data, unmatchedCount } = useNetworkAggregate();
-  const kpis = useNetworkKPIs(data);
-
-  if (status === 'error') {
-    // Parent page will show error
-    return null;
-  }
-
-  if (status === 'empty' && data.length === 0) {
+  if (isEmpty) {
     return (
       <Alert>
         <Info className="h-4 w-4" />
@@ -27,18 +26,6 @@ export function NetworkKPIStrip() {
       </Alert>
     );
   }
-
-  const isLoading = status === 'loading';
-
-  // Format avg capacity reduction color
-  let avgColor = SIMULATION_CHART_CONFIG.riskZones.safe.color;
-  if (kpis && kpis.avgCapacityReduction >= SIMULATION_CHART_CONFIG.riskZones.critical.threshold * 100) {
-    avgColor = SIMULATION_CHART_CONFIG.riskZones.critical.color;
-  } else if (kpis && kpis.avgCapacityReduction >= SIMULATION_CHART_CONFIG.riskZones.marginal.threshold * 100) {
-    avgColor = SIMULATION_CHART_CONFIG.riskZones.marginal.color;
-  }
-
-  const unmatchedStr = unmatchedCount > 0 ? `${unmatchedCount} violations could not be matched to a segment.` : `All mapped successfully.`;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">

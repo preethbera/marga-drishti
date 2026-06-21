@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useNetworkStore } from '../useNetworkStore';
-import { useNetworkAggregate, useAdjacencyList, useCongestionCascade } from '../useNetworkHooks';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Button } from '@components/ui/button';
+import { Slider } from '@components/ui/slider';
+import { Label } from '@components/ui/label';
+import { Badge } from '@components/ui/badge';
+import { useNetworkStore } from '@core/store/useNetworkStore';
+import { useNetworkAggregate, useAdjacencyList, useCongestionCascade } from '@core/hooks/useNetworkHooks';
 
 export function CongestionCascade() {
   const { data } = useNetworkAggregate();

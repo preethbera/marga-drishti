@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Badge } from '@components/ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceDot, ResponsiveContainer } from 'recharts';
-import { useSimulationStore } from '../useSimulationStore';
-import { useSimulationDerived, useSpeedDensityCurves } from '../useSimulationHooks';
+import { useSimulationStore } from '@core/store/useSimulationStore';
+import { useSimulationDerived, useSpeedDensityCurves } from '@core/hooks/useSimulationHooks';
 import { SIMULATION_CHART_CONFIG } from '../simulationConfig';
-import { MODEL_CONSTANTS } from '../modelEngine';
+import { MODEL_CONSTANTS } from '@core/simulation/modelEngine';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {

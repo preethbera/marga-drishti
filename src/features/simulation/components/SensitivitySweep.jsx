@@ -1,10 +1,10 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceDot, ReferenceArea } from 'recharts';
-import { useSimulationStore } from '../useSimulationStore';
-import { useSimulationDerived, useSensitivityCurve } from '../useSimulationHooks';
+import { useSimulationStore } from '@core/store/useSimulationStore';
+import { useSimulationDerived, useSensitivityCurve } from '@core/hooks/useSimulationHooks';
 import { SIMULATION_CHART_CONFIG } from '../simulationConfig';
-import { MODEL_CONSTANTS } from '../modelEngine';
+import { MODEL_CONSTANTS } from '@core/simulation/modelEngine';
 
 const CustomTooltip = ({ active, payload, maxPCU }) => {
   if (active && payload && payload.length) {

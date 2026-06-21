@@ -1,4 +1,4 @@
-import { SIMULATION_CHART_CONFIG } from '../simulation/simulationConfig';
+import { SIMULATION_CHART_CONFIG } from '@features/simulation/simulationConfig';
 
 export const NETWORK_CONFIG = {
   // Choropleth color scale (interpolated from SIMULATION_CHART_CONFIG.riskZones)
