@@ -1,29 +1,26 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   BarChart3,
   Database,
-  FileText,
   Map,
-  MapPin,
   Settings,
-  Shield,
-  ShieldAlert,
-  Video,
-} from "lucide-react"
+} from "lucide-react";
 
-import { NavMain } from "@layouts/nav-main"
-import { NavProjects } from "@layouts/nav-projects"
-import { NavUser } from "@layouts/nav-user"
-import { TeamSwitcher } from "@layouts/team-switcher"
+import { NavMain } from "@layouts/nav-main";
+import { NavSecondary } from "@layouts/nav-secondary";
+import { NavUser } from "@layouts/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@components/ui/sidebar"
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@components/ui/sidebar";
 
 // Traffic Enforcement and Parking Analytics Data
 const data = {
@@ -33,23 +30,7 @@ const data = {
     role: "Dispatcher",
     avatar: "",
   },
-  teams: [
-    {
-      name: "Sector 1",
-      logo: MapPin,
-      plan: "North Zone",
-    },
-    {
-      name: "Sector 2",
-      logo: MapPin,
-      plan: "South Zone",
-    },
-    {
-      name: "Sector 3",
-      logo: Shield,
-      plan: "Central District",
-    },
-  ],
+
   navMain: [
     {
       title: "Analytics",
@@ -91,35 +72,48 @@ const data = {
         },
       ],
     },
-  ],
-  projects: [
     {
-      name: "Data Ingestion",
+      title: "Data Management",
       url: "/data-ingestion",
       icon: Database,
     },
+  ],
+  navSecondary: [
     {
-      name: "Settings",
+      title: "Settings",
       url: "/settings",
       icon: Settings,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+      <SidebarHeader className="border-b border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg">
+              <div className="flex aspect-square size-8 items-center justify-center">
+                <img
+                  src="/logo.svg"
+                  alt="Marga Drishti Logo"
+                  className="size-5"
+                />
+              </div>
+              <span className="truncate font-semibold text-sm">Marga Drishti</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
+        <NavSecondary items={data.navSecondary} />
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

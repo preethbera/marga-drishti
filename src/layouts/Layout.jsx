@@ -59,7 +59,11 @@ export default function Layout() {
                             {isLast ? (
                               <BreadcrumbPage>{title}</BreadcrumbPage>
                             ) : (
-                              <BreadcrumbLink render={<Link to={path} className="hidden md:block" />}>
+                              <BreadcrumbLink
+                                render={
+                                  <Link to={path} className="hidden md:block" />
+                                }
+                              >
                                 {title}
                               </BreadcrumbLink>
                             )}
@@ -73,9 +77,7 @@ export default function Layout() {
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <Outlet />
-        </div>
+        <Outlet />
       </SidebarInset>
     </SidebarProvider>
   );
