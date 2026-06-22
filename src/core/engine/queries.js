@@ -198,5 +198,112 @@ export const QUERIES = {
     WHERE created_datetime >= '${start}' AND created_datetime <= '${end}' AND vehicle_type IS NOT NULL
     GROUP BY vehicle_type
     ORDER BY count DESC
+  `,
+
+  // Helper for temporal conditions
+  _buildTemporalConditions: (filters) => {
+    let conditions = [];
+    if (filters?.timeRange) {
+      conditions.push(`extract('hour' from created_datetime) >= ${filters.timeRange[0]} AND extract('hour' from created_datetime) <= ${filters.timeRange[1]}`);
+    }
+    if (filters?.dayOfWeek && filters.dayOfWeek !== 'all') {
+      const dowMap = { 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 };
+      if (dowMap[filters.dayOfWeek] !== undefined) {
+         conditions.push(`extract('dow' from created_datetime) = ${dowMap[filters.dayOfWeek]}`);
+      }
+    }
+    return conditions;
+  },
+
+  getTemporalKPIs: (filters) => {
+    const conditions = QUERIES._buildTemporalConditions(filters);
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    
+    return `
+      WITH current_window AS (
+        SELECT * FROM violations 
+        ${whereClause}
+      ),
+      total_violations AS (
+        SELECT count(*) as count FROM violations
+      ),
+      top_station AS (
+        SELECT center_code, count(*) as count 
+        FROM current_window 
+        WHERE center_code != 91
+        GROUP BY center_code 
+        ORDER BY count DESC 
+        LIMIT 1
+      ),
+      peak_slot AS (
+        SELECT extract('dow' from created_datetime) as dow, extract('hour' from created_datetime) as hour_val, count(*) as count
+        FROM current_window
+        GROUP BY dow, hour_val
+        ORDER BY count DESC
+        LIMIT 1
+      )
+      SELECT 
+        (SELECT count(*) FROM current_window) as violations_in_window,
+        (SELECT count FROM total_violations) as total_violations,
+        CAST((SELECT center_code FROM top_station) AS VARCHAR) as top_station_code,
+        (SELECT count FROM top_station) as top_station_count,
+        (SELECT dow FROM peak_slot) as peak_dow,
+        (SELECT hour_val FROM peak_slot) as peak_hour
+    `;
+  },
+  
+  getTemporalViolations: (filters) => {
+    const conditions = QUERIES._buildTemporalConditions(filters);
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    
+    return `
+      SELECT 
+        latitude, 
+        longitude, 
+        vehicle_type,
+        extract('hour' from created_datetime) as hour_val
+      FROM violations
+      ${whereClause}
+    `;
+  },
+  
+  getTemporalVehicleMix: (filters) => {
+    const conditions = QUERIES._buildTemporalConditions(filters);
+    conditions.push("vehicle_type IS NOT NULL");
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    
+    return `
+      SELECT 
+        vehicle_type as type,
+        count(*) as count
+      FROM violations
+      ${whereClause}
+      GROUP BY vehicle_type
+      ORDER BY count DESC
+    `;
+  },
+  
+  getWeeklyHeatmap: () => `
+    WITH stats AS (
+      SELECT 
+        extract('dow' from created_datetime) as dow,
+        extract('hour' from created_datetime) as hour_val,
+        count(*) as count
+      FROM violations
+      GROUP BY dow, hour_val
+    ),
+    global_stats AS (
+      SELECT avg(count) as mean, stddev(count) as std
+      FROM stats
+    )
+    SELECT 
+      s.dow, 
+      s.hour_val, 
+      s.count,
+      g.mean,
+      g.std
+    FROM stats s
+    CROSS JOIN global_stats g
+    ORDER BY s.dow ASC, s.hour_val ASC
   `
 };

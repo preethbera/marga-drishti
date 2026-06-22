@@ -62,6 +62,47 @@ export const GEOSPATIAL_CONFIG = {
         };
         return pcuMap[vehicleType] || 1.0;
       }
+    },
+    HEXBINS: {
+      id: 'temporal-hexbins',
+      radius: 200,
+      elevationScale: 5,
+      extruded: true,
+      colorRange: [
+        [243, 232, 255], // Lavender (low)
+        [216, 180, 254],
+        [192, 132, 252],
+        [168, 85, 247],
+        [147, 51, 234],
+        [126, 34, 206]   // Deep Purple (high)
+      ]
+    },
+    POINTS: {
+      id: 'temporal-points',
+      radiusMinPixels: 2,
+      radiusMaxPixels: 6,
+      getFillColor: [147, 51, 234, 200], // Purple
+      getLineColor: [255, 255, 255, 50],
+      lineWidthMinPixels: 1
+    },
+    IMPACT: {
+      id: 'temporal-impact',
+      radius: 200,
+      elevationScale: 10, // Higher scale for impact
+      extruded: true,
+      colorRange: [
+        [254, 243, 199], // Warm Cream (low impact)
+        [253, 230, 138],
+        [252, 211, 77],
+        [251, 191, 36],
+        [245, 158, 11],
+        [220, 38, 38]    // Red (high impact)
+      ],
+      getWeight: (hour) => {
+        // Impact weighting (heavier during peak 8-11 and 17-21)
+        const isPeak = (hour >= 8 && hour <= 11) || (hour >= 17 && hour <= 21);
+        return isPeak ? 1.8 : 1.0;
+      }
     }
   }
 };

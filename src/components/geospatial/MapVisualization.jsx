@@ -1,10 +1,9 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, TextLayer } from '@deck.gl/layers';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import Map from 'react-map-gl/maplibre';
 import { GEOSPATIAL_CONFIG } from '../../core/config/geospatial';
 import MapTooltip from './MapTooltip';
+import { BaseMap } from '../ui/base-map';
 
 export default function MapVisualization({ 
   viewState, 
@@ -88,30 +87,20 @@ export default function MapVisualization({
   }, [onViewStateChange]);
 
   return (
-    <div className="flex-1 relative w-full h-full bg-background" onMouseLeave={() => setHoverInfo(null)}>
-      <DeckGL
-        layers={layers}
-        initialViewState={viewState}
-        viewState={viewState}
-        onViewStateChange={handleViewStateChange}
-        controller={true}
-        getCursor={({ isDragging, isHovering }) => isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab'}
-      >
-        <Map 
-          mapStyle={GEOSPATIAL_CONFIG.MAP_STYLE} 
-          reuseMaps
-          preventStyleDiffing={true}
+    <BaseMap
+      layers={layers}
+      viewState={viewState}
+      onViewStateChange={handleViewStateChange}
+      onMouseLeave={() => setHoverInfo(null)}
+    >
+      {hoverInfo && hoverInfo.object && (
+        <MapTooltip 
+          object={hoverInfo.object} 
+          x={hoverInfo.x} 
+          y={hoverInfo.y} 
+          isDetailed={isDetailed} 
         />
-        
-        {hoverInfo && hoverInfo.object && (
-          <MapTooltip 
-            object={hoverInfo.object} 
-            x={hoverInfo.x} 
-            y={hoverInfo.y} 
-            isDetailed={isDetailed} 
-          />
-        )}
-      </DeckGL>
-    </div>
+      )}
+    </BaseMap>
   );
 }
