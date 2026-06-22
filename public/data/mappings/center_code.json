@@ -1,0 +1,222 @@
+[
+    {
+        "center_code":2,
+        "police_station":"Cubbon Park"
+    },
+    {
+        "center_code":3,
+        "police_station":"Upparpet"
+    },
+    {
+        "center_code":4,
+        "police_station":"Jeevanbheemanagar"
+    },
+    {
+        "center_code":5,
+        "police_station":"Adugodi"
+    },
+    {
+        "center_code":6,
+        "police_station":"Rajajinagar"
+    },
+    {
+        "center_code":7,
+        "police_station":"Basavanagudi"
+    },
+    {
+        "center_code":8,
+        "police_station":"Ashok Nagar"
+    },
+    {
+        "center_code":9,
+        "police_station":"Madiwala"
+    },
+    {
+        "center_code":10,
+        "police_station":"Sadashivanagar"
+    },
+    {
+        "center_code":11,
+        "police_station":"High ground"
+    },
+    {
+        "center_code":12,
+        "police_station":"Halasuru Gate"
+    },
+    {
+        "center_code":13,
+        "police_station":"HAL Old Airport"
+    },
+    {
+        "center_code":14,
+        "police_station":"Pulikeshinagar(F.Town)"
+    },
+    {
+        "center_code":15,
+        "police_station":"K.R. Pura"
+    },
+    {
+        "center_code":16,
+        "police_station":"Shivajinagar"
+    },
+    {
+        "center_code":17,
+        "police_station":"Halasur"
+    },
+    {
+        "center_code":18,
+        "police_station":"Hebbala"
+    },
+    {
+        "center_code":19,
+        "police_station":"Malleshwaram"
+    },
+    {
+        "center_code":20,
+        "police_station":"Peenya"
+    },
+    {
+        "center_code":21,
+        "police_station":"R.T. Nagar"
+    },
+    {
+        "center_code":22,
+        "police_station":"Yeshwanthpura"
+    },
+    {
+        "center_code":23,
+        "police_station":"Banashankari"
+    },
+    {
+        "center_code":24,
+        "police_station":"V.V.Puram (C.Pet)"
+    },
+    {
+        "center_code":25,
+        "police_station":"Jayanagara"
+    },
+    {
+        "center_code":26,
+        "police_station":"Byatarayanapura"
+    },
+    {
+        "center_code":27,
+        "police_station":"Chamarajpet"
+    },
+    {
+        "center_code":28,
+        "police_station":"City Market"
+    },
+    {
+        "center_code":29,
+        "police_station":"Magadi Road"
+    },
+    {
+        "center_code":30,
+        "police_station":"Vijayanagara"
+    },
+    {
+        "center_code":31,
+        "police_station":"Mico Layout"
+    },
+    {
+        "center_code":32,
+        "police_station":"Wilson Garden"
+    },
+    {
+        "center_code":33,
+        "police_station":"Kamakshipalya"
+    },
+    {
+        "center_code":34,
+        "police_station":"Banaswadi"
+    },
+    {
+        "center_code":35,
+        "police_station":"K.S. Layout"
+    },
+    {
+        "center_code":36,
+        "police_station":"Yelahanka"
+    },
+    {
+        "center_code":38,
+        "police_station":"Electronic City"
+    },
+    {
+        "center_code":39,
+        "police_station":"Whitefield"
+    },
+    {
+        "center_code":40,
+        "police_station":"Chikkajala"
+    },
+    {
+        "center_code":41,
+        "police_station":"Devanahalli Airport"
+    },
+    {
+        "center_code":42,
+        "police_station":"Kengeri"
+    },
+    {
+        "center_code":43,
+        "police_station":"Jalahalli"
+    },
+    {
+        "center_code":44,
+        "police_station":"Hulimavu"
+    },
+    {
+        "center_code":45,
+        "police_station":"HSR Layout"
+    },
+    {
+        "center_code":46,
+        "police_station":"K.G. Halli"
+    },
+    {
+        "center_code":81,
+        "police_station":"Hennuru"
+    },
+    {
+        "center_code":82,
+        "police_station":"Bellandur"
+    },
+    {
+        "center_code":83,
+        "police_station":"Thalagattapura"
+    },
+    {
+        "center_code":84,
+        "police_station":"Mahadevapura"
+    },
+    {
+        "center_code":85,
+        "police_station":"Jnanabharathi"
+    },
+    {
+        "center_code":86,
+        "police_station":"Chikkabanavara"
+    },
+    {
+        "center_code":87,
+        "police_station":"Sheshadripuram"
+    },
+    {
+        "center_code":88,
+        "police_station":"J.P. Nagar"
+    },
+    {
+        "center_code":89,
+        "police_station":"Kodigehalli"
+    },
+    {
+        "center_code":90,
+        "police_station":"No Police Station"
+    },
+    {
+        "center_code":91,
+        "police_station":"Missing"
+    }
+]

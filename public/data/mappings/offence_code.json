@@ -1,0 +1,110 @@
+[
+    {
+        "offence_code":104,
+        "violation_type":"PARKING NEAR ROAD CROSSING"
+    },
+    {
+        "offence_code":105,
+        "violation_type":"PARKING ON FOOTPATH"
+    },
+    {
+        "offence_code":106,
+        "violation_type":"PARKING NEAR TRAFFIC LIGHT OR ZEBRA CROSS"
+    },
+    {
+        "offence_code":107,
+        "violation_type":"PARKING IN A MAIN ROAD"
+    },
+    {
+        "offence_code":108,
+        "violation_type":"PARKING OPPOSITE TO ANOTHER PARKED VEHICLE"
+    },
+    {
+        "offence_code":109,
+        "violation_type":"DOUBLE PARKING"
+    },
+    {
+        "offence_code":110,
+        "violation_type":"FAIL TO USE SAFETY BELTS"
+    },
+    {
+        "offence_code":111,
+        "violation_type":"PARKING NEAR BUSTOP\/SCHOOL\/HOSPITAL ETC"
+    },
+    {
+        "offence_code":112,
+        "violation_type":"WRONG PARKING"
+    },
+    {
+        "offence_code":113,
+        "violation_type":"NO PARKING"
+    },
+    {
+        "offence_code":115,
+        "violation_type":"JUMPING TRAFFIC SIGNAL"
+    },
+    {
+        "offence_code":116,
+        "violation_type":"DEFECTIVE NUMBER PLATE"
+    },
+    {
+        "offence_code":123,
+        "violation_type":"CARRYING LENGHTY MATERIAL"
+    },
+    {
+        "offence_code":124,
+        "violation_type":"REFUSE TO GO FOR HIRE"
+    },
+    {
+        "offence_code":125,
+        "violation_type":"DEMANDING EXCESS FARE"
+    },
+    {
+        "offence_code":130,
+        "violation_type":"VIOLATING LANE DISIPLINE"
+    },
+    {
+        "offence_code":133,
+        "violation_type":"USING BLACK FILM\/OTHER MATERIALS"
+    },
+    {
+        "offence_code":134,
+        "violation_type":"U TURN PROHIBITED"
+    },
+    {
+        "offence_code":135,
+        "violation_type":"AGAINST ONE WAY\/NO ENTRY"
+    },
+    {
+        "offence_code":136,
+        "violation_type":"OBSTRUCTING DRIVER"
+    },
+    {
+        "offence_code":139,
+        "violation_type":"PARKING OTHER THAN BUS STOP"
+    },
+    {
+        "offence_code":140,
+        "violation_type":"RIDER NOT WEARING HELMET"
+    },
+    {
+        "offence_code":144,
+        "violation_type":"WITHOUT SIDE MIRROR"
+    },
+    {
+        "offence_code":146,
+        "violation_type":"STOPING ON WHITE\/STOP LINE"
+    },
+    {
+        "offence_code":147,
+        "violation_type":"H T V PROHIBITED"
+    },
+    {
+        "offence_code":237,
+        "violation_type":"2W\/3W - USING MOBILE PHONE"
+    },
+    {
+        "offence_code":437,
+        "violation_type":"OTHER - USING MOBILE PHONE"
+    }
+]

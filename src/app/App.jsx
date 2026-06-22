@@ -3,20 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/app/theme-provider";
 
 import Layout from "@layouts/Layout";
-import ExecutiveSummary from "@pages/dashboards/ExecutiveSummary";
-import TemporalMapping from "@pages/analytics/TemporalMapping";
 import GeospatialAnalysis from "@pages/analytics/GeospatialAnalysis";
-import ExploratorySandbox from "@pages/analytics/ExploratorySandbox";
+import ExecutiveSummary from "@pages/analytics/ExecutiveSummary";
 import Settings from "@pages/system/Settings";
-import DataManagement from "@pages/system/DataManagement";
-import AnalyticsGuard from "@layouts/AnalyticsGuard";
-import { initializeAppData } from "@app/GlobalDataLoader";
-import SimulationStudio from "@pages/simulation/SimulationStudio";
-import NetworkIntelligence from "@pages/network/NetworkIntelligence";
-
-// Fire data initialization immediately on module load.
-// This runs before any React component mounts, eliminating race conditions.
-initializeAppData();
 
 export default function App() {
   return (
@@ -26,18 +15,18 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/analytics/executive" replace />} />
             
-            <Route path="analytics" element={<AnalyticsGuard />}>
+            {/* Analytics Routes */}
+            <Route path="analytics">
               <Route path="executive" element={<ExecutiveSummary />} />
-              <Route path="temporal" element={<TemporalMapping />} />
               <Route path="geospatial" element={<GeospatialAnalysis />} />
-              <Route path="sandbox" element={<ExploratorySandbox />} />
+              {/* Fallback for other analytics routes not yet implemented */}
+              <Route path="*" element={<Navigate to="/analytics/executive" replace />} />
             </Route>
-            
-            <Route path="data-ingestion" element={<DataManagement />} />
+
+            {/* Legacy route fallback */}
+            <Route path="geospatial" element={<Navigate to="/analytics/geospatial" replace />} />
+
             <Route path="settings" element={<Settings />} />
-            <Route path="simulation/studio" element={<SimulationStudio />} />
-            <Route path="network/intelligence" element={<NetworkIntelligence />} />
-            
             <Route path="*" element={<Navigate to="/analytics/executive" replace />} />
           </Route>
         </Routes>

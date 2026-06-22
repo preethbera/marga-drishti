@@ -1,14 +1,29 @@
 [
   {
     "name": "adjacency/bengaluru_adjacency.parquet",
-    "type": "adjacency"
+    "type": "adjacency",
+    "format": "parquet"
+  },
+  {
+    "name": "mappings/center_code.json",
+    "type": "mapping",
+    "format": "json",
+    "tableName": "dim_center_code"
+  },
+  {
+    "name": "mappings/offence_code.json",
+    "type": "mapping",
+    "format": "json",
+    "tableName": "dim_offence_code"
   },
   {
     "name": "segments/bengaluru_segments_optimized.parquet",
-    "type": "segments"
+    "type": "segments",
+    "format": "parquet"
   },
   {
     "name": "violations/final_violations_dataset.parquet",
-    "type": "violations"
+    "type": "violations",
+    "format": "parquet"
   }
 ]
