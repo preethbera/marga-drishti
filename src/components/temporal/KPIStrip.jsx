@@ -11,6 +11,7 @@ export default function KPIStrip({ kpis }) {
     violationsInWindow,
     totalViolations,
     topStationCode,
+    topStationName,
     topStationCount,
     peakDow,
     peakHour
@@ -63,7 +64,9 @@ export default function KPIStrip({ kpis }) {
             <span className="text-xs font-semibold uppercase text-destructive">Top Hotspot Station</span>
             <MapPin className="w-4 h-4 text-destructive" />
           </div>
-          <div className="text-2xl font-bold truncate" title={topStationCode || 'Unknown'}>{topStationCode || 'Unknown'}</div>
+          <div className="text-2xl font-bold truncate" title={topStationName ? `${topStationName} (${topStationCode})` : (topStationCode || 'Unknown')}>
+            {topStationName ? `${topStationName}` : (topStationCode || 'Unknown')}
+          </div>
           <div className="text-xs text-muted-foreground">{topStationCount?.toLocaleString() || 0} violations in window</div>
         </CardContent>
       </Card>

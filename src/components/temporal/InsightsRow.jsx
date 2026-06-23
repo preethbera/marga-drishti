@@ -60,7 +60,7 @@ export default function InsightsRow({ dataA, filtersA }) {
                   stroke="none"
                 >
                   {displayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`hsl(${CHART_COLORS[index % CHART_COLORS.length]})`} />
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -74,7 +74,7 @@ export default function InsightsRow({ dataA, filtersA }) {
             {displayData.map((item, idx) => (
               <div key={item.type} className="flex items-center justify-between text-[11px]">
                 <div className="flex items-center gap-1.5 overflow-hidden">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: `hsl(${CHART_COLORS[idx % CHART_COLORS.length]})` }} />
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
                   <span className="truncate max-w-[80px]" title={item.type}>{item.type}</span>
                 </div>
                 <span className="font-semibold">{total > 0 ? Math.round((item.count / total) * 100) : 0}%</span>

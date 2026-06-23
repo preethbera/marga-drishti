@@ -98,6 +98,7 @@ export const useTemporalStore = create((set, get) => ({
         violationsInWindow: Number(kpis.violations_in_window[0]),
         totalViolations: Number(kpis.total_violations[0]),
         topStationCode: kpis.top_station_code[0],
+        topStationName: kpis.top_station_name ? kpis.top_station_name[0] : undefined,
         topStationCount: Number(kpis.top_station_count[0]),
         peakDow: Number(kpis.peak_dow[0]),
         peakHour: Number(kpis.peak_hour[0])
@@ -134,6 +135,7 @@ export const useTemporalStore = create((set, get) => ({
         violationsInWindow: Number(kpis.violations_in_window[0]),
         totalViolations: Number(kpis.total_violations[0]),
         topStationCode: kpis.top_station_code[0],
+        topStationName: kpis.top_station_name ? kpis.top_station_name[0] : undefined,
         topStationCount: Number(kpis.top_station_count[0]),
         peakDow: Number(kpis.peak_dow[0]),
         peakHour: Number(kpis.peak_hour[0])

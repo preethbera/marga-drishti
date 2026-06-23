@@ -26,14 +26,14 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
 
 
   const getColor = (count) => {
-    if (!count) return 'bg-muted/30';
+    if (!count || count === 0) return 'bg-violet-50 dark:bg-violet-100';
     const ratio = Math.min(count / maxCount, 1);
-    // Interpolate from slate-100 to violet-900 roughly
-    if (ratio < 0.1) return 'bg-slate-100 dark:bg-slate-800';
-    if (ratio < 0.3) return 'bg-violet-200 dark:bg-violet-900/40';
-    if (ratio < 0.5) return 'bg-violet-400 dark:bg-violet-800/60';
-    if (ratio < 0.7) return 'bg-violet-600 dark:bg-violet-700/80';
-    return 'bg-violet-800 dark:bg-violet-600';
+    // Interpolate from violet-50 to purple-700 roughly
+    if (ratio < 0.1) return 'bg-violet-50 dark:bg-violet-100';
+    if (ratio < 0.3) return 'bg-violet-200 dark:bg-violet-300';
+    if (ratio < 0.5) return 'bg-violet-400 dark:bg-violet-500';
+    if (ratio < 0.7) return 'bg-violet-600 dark:bg-violet-600';
+    return 'bg-purple-700 dark:bg-purple-600';
   };
 
   return (
@@ -50,7 +50,7 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Low</span>
-          <div className="h-3 w-24 rounded bg-gradient-to-r from-slate-100 via-violet-400 to-violet-800 dark:from-slate-800 dark:to-violet-600" />
+          <div className="h-3 w-24 rounded bg-gradient-to-r from-violet-50 via-violet-400 to-purple-700 dark:from-violet-100 dark:via-violet-500 dark:to-purple-600" />
           <span>High</span>
         </div>
       </CardHeader>

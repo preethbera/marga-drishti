@@ -472,6 +472,7 @@ export const QUERIES = {
         (SELECT count(*) FROM current_window) as violations_in_window,
         (SELECT count FROM total_violations) as total_violations,
         CAST((SELECT center_code FROM top_station) AS VARCHAR) as top_station_code,
+        (SELECT d.police_station FROM top_station t LEFT JOIN dim_center_code d ON CAST(t.center_code AS VARCHAR) = CAST(d.center_code AS VARCHAR)) as top_station_name,
         (SELECT count FROM top_station) as top_station_count,
         (SELECT dow FROM peak_slot) as peak_dow,
         (SELECT hour_val FROM peak_slot) as peak_hour
