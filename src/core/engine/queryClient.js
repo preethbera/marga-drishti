@@ -16,12 +16,14 @@ export function initWorker(manifest) {
         reject(new Error(error));
       } else if (type === 'QUERY_RESULT') {
         const { queryId, buffer } = payload;
+        console.log(`[Main] Received QUERY_RESULT for ${queryId}. Buffer size: ${buffer.byteLength}`);
         if (pendingQueries.has(queryId)) {
           pendingQueries.get(queryId).resolve(buffer);
           pendingQueries.delete(queryId);
         }
       } else if (type === 'QUERY_ERROR') {
         const { queryId, error: qError } = payload;
+        console.error(`[Main] Received QUERY_ERROR for ${queryId}:`, qError);
         if (pendingQueries.has(queryId)) {
           pendingQueries.get(queryId).reject(new Error(qError));
           pendingQueries.delete(queryId);

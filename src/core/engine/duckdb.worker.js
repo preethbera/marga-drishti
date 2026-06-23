@@ -95,15 +95,21 @@ self.onmessage = async (e) => {
     try {
       if (!conn) throw new Error('DuckDB not initialized');
       
+      console.log(`[Worker] Starting query ${queryId}...`);
+      const startTime = performance.now();
       const result = await conn.query(sql);
+      const queryTime = performance.now() - startTime;
+      console.log(`[Worker] Query ${queryId} completed in ${queryTime.toFixed(2)}ms. Serializing...`);
       
       // Serialize the Arrow Table to IPC buffer so it can be safely sent across postMessage
       const buffer = tableToIPC(result);
+      console.log(`[Worker] Query ${queryId} serialized. Buffer size: ${buffer.byteLength} bytes. Sending to main thread...`);
       
       // Transfer the buffer for zero-copy memory efficiency
       self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } }, [buffer.buffer]);
+      console.log(`[Worker] Query ${queryId} message posted.`);
     } catch (error) {
-      console.error('Query error:', error);
+      console.error(`[Worker] Query error for ${queryId}:`, error);
       self.postMessage({ type: 'QUERY_ERROR', payload: { queryId, error: error.message } });
     }
   }

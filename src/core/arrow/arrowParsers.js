@@ -11,12 +11,17 @@ export function parseArrowBuffer(buffer) {
   
   const result = {};
   
-  table.schema.fields.forEach(field => {
+  const fields = table.schema.fields;
+  console.log(`[Main] Parsed Arrow Table. Found ${fields.length} fields.`);
+  
+  fields.forEach(field => {
     const colName = field.name;
     const column = table.getChild(colName);
     
     if (column) {
       result[colName] = column.toArray();
+    } else {
+      console.warn(`[Main] Column ${colName} not found in Arrow table!`);
     }
   });
   
