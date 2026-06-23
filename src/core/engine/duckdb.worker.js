@@ -111,11 +111,17 @@ self.onmessage = async (e) => {
           const colName = field.name;
           const column = result.getChild(colName);
           if (column) {
-            // column.toArray() returns a TypedArray view of the WASM memory.
-            // We use .slice() to create an isolated ArrayBuffer for this column so we don't transfer the entire WASM heap!
-            const typedArray = column.toArray().slice();
-            parsed[colName] = typedArray;
-            transferList.push(typedArray.buffer);
+            const arr = column.toArray();
+            // Only TypedArrays have a .buffer property. Regular arrays (like strings) do not.
+            if (arr && arr.buffer instanceof ArrayBuffer) {
+              // Clone the TypedArray so we don't accidentally transfer the entire WASM heap
+              const typedArray = arr.slice();
+              parsed[colName] = typedArray;
+              transferList.push(typedArray.buffer);
+            } else {
+              // For string arrays or nested types, just pass the array normally
+              parsed[colName] = arr;
+            }
           }
         });
       }
