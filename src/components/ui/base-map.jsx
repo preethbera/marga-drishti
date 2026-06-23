@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import DeckGL from '@deck.gl/react';
 import Map from 'react-map-gl/maplibre';
-import { GEOSPATIAL_CONFIG } from '../../core/config/geospatial';
+import { GEOSPATIAL_CONFIG } from '../../core/config/map';
 
 export function BaseMap({
   layers = [],

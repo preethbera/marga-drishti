@@ -17,10 +17,20 @@ const CHART_COLORS = [
 
 export default function InsightsRow({ dataA, filtersA }) {
   const renderVehicleMix = (mixData) => {
-    if (!mixData || mixData.length === 0) return null;
+    if (!mixData || !mixData.length) return null;
     
     // Process top 5 + Others
-    let displayData = [...mixData].sort((a, b) => b.count - a.count);
+    const parsedData = [];
+    if (mixData.type && mixData.count) {
+      for (let i = 0; i < mixData.length; i++) {
+        parsedData.push({
+          type: mixData.type[i],
+          count: Number(mixData.count[i])
+        });
+      }
+    }
+    
+    let displayData = parsedData.sort((a, b) => b.count - a.count);
     const total = displayData.reduce((sum, item) => sum + item.count, 0);
     
     if (displayData.length > 6) {

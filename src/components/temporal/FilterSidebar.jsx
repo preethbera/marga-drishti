@@ -13,8 +13,6 @@ const PRESETS = [
   { label: 'All Day', range: [0, 23] }
 ];
 
-const MAP_LAYERS = ['Hexbins', 'Heatmap', 'Points', 'Impact'];
-
 export default function FilterSidebar({
   filtersA,
   setFiltersA,
@@ -22,8 +20,6 @@ export default function FilterSidebar({
   setFiltersB,
   compareMode,
   setCompareMode,
-  activeLayer,
-  setActiveLayer,
   playbackState,
   togglePlayback,
   resetPlayback
@@ -184,21 +180,6 @@ export default function FilterSidebar({
             <Columns className="w-3 h-3 mr-1.5" />
             {compareMode ? 'Exit Compare' : 'Compare'}
           </Button>
-        </div>
-
-        {/* 4. Map Layer */}
-        <div className="flex flex-col gap-2 pt-4 border-t">
-          <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase">Map Layer</span>
-          <Select value={activeLayer} onValueChange={(val) => setActiveLayer(val)}>
-            <SelectTrigger className="w-full text-xs h-8">
-              <SelectValue placeholder="Select layer" />
-            </SelectTrigger>
-            <SelectContent>
-              {MAP_LAYERS.map(layer => (
-                <SelectItem key={layer} value={layer}>{layer}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
       </div>

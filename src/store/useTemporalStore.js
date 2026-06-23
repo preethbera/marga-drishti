@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { executeQuery } from '../core/engine/queryClient';
 import { QUERIES } from '../core/engine/queries';
 import { parseArrowBuffer } from '../core/arrow/arrowParsers';
-import { GEOSPATIAL_CONFIG } from '../core/config/geospatial';
+import { GEOSPATIAL_CONFIG } from '../core/config/map';
 
 const INITIAL_FILTERS = {
   timeRange: [0, 23],
@@ -103,30 +103,16 @@ export const useTemporalStore = create((set, get) => ({
         peakHour: Number(kpis.peak_hour[0])
       } : null;
 
-      const violationsList = [];
       if (violations.latitude) {
-        for (let i = 0; i < violations.latitude.length; i++) {
-          violationsList.push({
-            latitude: violations.latitude[i],
-            longitude: violations.longitude[i],
-            vehicle_type: violations.vehicle_type[i],
-            hour: Number(violations.hour_val[i])
-          });
-        }
+        violations.length = violations.latitude.length;
       }
 
-      const vehicleMix = [];
       if (mix.type) {
-        for (let i = 0; i < mix.type.length; i++) {
-          vehicleMix.push({
-            type: mix.type[i],
-            count: Number(mix.count[i])
-          });
-        }
+        mix.length = mix.type.length;
       }
 
       set((state) => ({ 
-        dataA: { kpis: kpisData, violations: violationsList, vehicleMix }, 
+        dataA: { kpis: kpisData, violations, vehicleMix: mix }, 
         isLoadingA: false 
       }));
     } catch (err) {
@@ -153,30 +139,16 @@ export const useTemporalStore = create((set, get) => ({
         peakHour: Number(kpis.peak_hour[0])
       } : null;
 
-      const violationsList = [];
       if (violations.latitude) {
-        for (let i = 0; i < violations.latitude.length; i++) {
-          violationsList.push({
-            latitude: violations.latitude[i],
-            longitude: violations.longitude[i],
-            vehicle_type: violations.vehicle_type[i],
-            hour: Number(violations.hour_val[i])
-          });
-        }
+        violations.length = violations.latitude.length;
       }
 
-      const vehicleMix = [];
       if (mix.type) {
-        for (let i = 0; i < mix.type.length; i++) {
-          vehicleMix.push({
-            type: mix.type[i],
-            count: Number(mix.count[i])
-          });
-        }
+        mix.length = mix.type.length;
       }
 
       set((state) => ({ 
-        dataB: { kpis: kpisData, violations: violationsList, vehicleMix }, 
+        dataB: { kpis: kpisData, violations, vehicleMix: mix }, 
         isLoadingB: false 
       }));
     } catch (err) {

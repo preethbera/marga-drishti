@@ -113,6 +113,7 @@ export default function TemporalAnalysis() {
               <TemporalMapColumn 
                 compareMode={compareMode}
                 activeLayer={activeLayer}
+                setActiveLayer={setActiveLayer}
                 viewState={viewState}
                 onViewStateChange={setViewState}
                 dataA={dataA}
@@ -139,8 +140,6 @@ export default function TemporalAnalysis() {
               setFiltersB={setFiltersB}
               compareMode={compareMode}
               setCompareMode={setCompareMode}
-              activeLayer={activeLayer}
-              setActiveLayer={setActiveLayer}
               playbackState={playbackState}
               togglePlayback={togglePlayback}
               resetPlayback={resetPlayback}

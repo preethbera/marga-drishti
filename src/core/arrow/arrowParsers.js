@@ -23,6 +23,11 @@ export function parseArrowBuffer(buffer) {
   return result;
 }
 
+export function parseArrowToTable(buffer) {
+  // Returns the raw Apache Arrow Table without converting to JS objects
+  return tableFromIPC(buffer);
+}
+
 export function extractCoordinates(buffer, geomColName = 'geometry') {
   if (buffer && !(buffer instanceof ArrayBuffer) && !buffer.buffer && typeof buffer === 'object') {
     if (!buffer[geomColName]) throw new Error(`Column ${geomColName} not found`);

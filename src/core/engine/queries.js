@@ -40,24 +40,35 @@ export const QUERIES = {
 
   // Get mappings for comboboxes
   getMappings: () => `
-    SELECT 'center' as type, CAST(center_code AS VARCHAR) as code, police_station as name FROM dim_center_code
+    SELECT 'center' as type, CAST(center_code AS VARCHAR) as code, police_station as name 
+    FROM dim_center_code
     UNION ALL
-    SELECT 'offence' as type, CAST(offence_code AS VARCHAR) as code, violation_type as name FROM dim_offence_code
+    SELECT 'offence' as type, CAST(offence_code AS VARCHAR) as code, violation_type as name
+    FROM dim_offence_code
+    UNION ALL
+    SELECT 'vehicle' as type, vehicle_type as code, vehicle_type as name
+    FROM violations
+    GROUP BY vehicle_type
   `,
 
-  // Aggregate violations by center
-  getCenterAggregations: (filters) => {
-    let conditions = ["v.center_code != 91"]; // Exclude unresolved centers by default
-    
+  // --- GEOSPATIAL ANALYSIS QUERIES ---
+
+  getGeospatialBaseFilter: (filters, alias = 'v') => {
+    let conditions = [`${alias}.center_code != 91`];
+    if (filters?.centerCode && filters.centerCode !== 'all') {
+      conditions.push(`${alias}.center_code = ${filters.centerCode}`);
+    }
     if (filters?.offenceCode && filters.offenceCode !== 'all') {
-      conditions.push(`list_contains(v.offence_code, ${filters.offenceCode})`);
+      conditions.push(`list_contains(${alias}.offence_code, ${filters.offenceCode})`);
     }
     if (filters?.vehicleType && filters.vehicleType !== 'all') {
-      conditions.push(`v.vehicle_type = '${filters.vehicleType}'`);
+      conditions.push(`${alias}.vehicle_type = '${filters.vehicleType}'`);
     }
-    
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : "";
-    
+    return conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : "";
+  },
+
+  getGeoCityAggregations: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
     return `
       SELECT 
         v.center_code as code, 
@@ -72,32 +83,236 @@ export const QUERIES = {
     `;
   },
 
-  // Get detailed individual violations for heatmap
-  getDetailedViolations: (filters) => {
-    let conditions = [];
-    
-    if (filters?.centerCode && filters.centerCode !== 'all') {
-      conditions.push(`v.center_code = ${filters.centerCode}`);
-    }
-    if (filters?.offenceCode && filters.offenceCode !== 'all') {
-      conditions.push(`list_contains(v.offence_code, ${filters.offenceCode})`);
-    }
-    if (filters?.vehicleType && filters.vehicleType !== 'all') {
-      conditions.push(`v.vehicle_type = '${filters.vehicleType}'`);
-    }
-    
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : "";
-    
+  getGeoDetailedViolations: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
     return `
       SELECT 
         v.latitude, 
         v.longitude, 
         v.vehicle_type,
-        v.offence_code
+        v.offence_code,
+        extract('hour' from v.created_datetime) as hour_val
       FROM violations v
       ${whereClause}
     `;
   },
+
+  getGeoTop10List: (filters) => {
+    // Top 10 with hourly fingerprint. We get overall counts, and the array of hour counts 0-23
+    const filterWithoutCenter = { ...filters, centerCode: 'all' };
+    const whereClause = QUERIES.getGeospatialBaseFilter(filterWithoutCenter);
+    
+    return `
+      WITH center_totals AS (
+        SELECT v.center_code, COUNT(*) as total_count
+        FROM violations v
+        ${whereClause}
+        GROUP BY v.center_code
+        ORDER BY total_count DESC
+        LIMIT 10
+      ),
+      hourly_counts AS (
+        SELECT 
+          v.center_code, 
+          extract('hour' from v.created_datetime) as hour_val, 
+          COUNT(*) as hour_count
+        FROM violations v
+        INNER JOIN center_totals ct ON v.center_code = ct.center_code
+        ${whereClause}
+        GROUP BY v.center_code, hour_val
+      ),
+      all_hours AS (
+        SELECT UNNEST(generate_series(0, 23)) as h
+      ),
+      fingerprints AS (
+        SELECT 
+          ct.center_code,
+          list(COALESCE(hc.hour_count, 0) ORDER BY ah.h ASC) as hourly_fingerprint
+        FROM center_totals ct
+        CROSS JOIN all_hours ah
+        LEFT JOIN hourly_counts hc ON hc.center_code = ct.center_code AND hc.hour_val = ah.h
+        GROUP BY ct.center_code
+      )
+      SELECT 
+        ct.center_code as code,
+        c.police_station as name,
+        ct.total_count as count,
+        f.hourly_fingerprint
+      FROM center_totals ct
+      JOIN fingerprints f ON ct.center_code = f.center_code
+      LEFT JOIN dim_center_code c ON CAST(ct.center_code AS VARCHAR) = CAST(c.center_code AS VARCHAR)
+      ORDER BY ct.total_count DESC
+    `;
+  },
+
+  getGeoDrillDownStats: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
+    return `
+      WITH current_center AS (
+        SELECT * FROM violations v ${whereClause}
+      ),
+      peak_hour AS (
+        SELECT extract('hour' from created_datetime) as hour_val, count(*) as count 
+        FROM current_center GROUP BY hour_val ORDER BY count DESC LIMIT 1
+      ),
+      peak_day AS (
+        SELECT extract('dow' from created_datetime) as dow, count(*) as count 
+        FROM current_center GROUP BY dow ORDER BY count DESC LIMIT 1
+      ),
+      lead_ps AS (
+        SELECT ps.police_station as name, count(*) as count
+        FROM current_center c
+        LEFT JOIN dim_center_code ps ON CAST(c.center_code AS VARCHAR) = CAST(ps.center_code AS VARCHAR)
+        GROUP BY ps.police_station
+        ORDER BY count DESC LIMIT 1
+      ),
+      entropy_calc AS (
+        SELECT 
+          SUM(-1 * p_val * log2(p_val)) as entropy
+        FROM (
+          SELECT count(*) * 1.0 / (SELECT count(*) FROM current_center) as p_val
+          FROM current_center
+          GROUP BY extract('hour' from created_datetime)
+        )
+      )
+      SELECT 
+        (SELECT count(*) FROM current_center) as total_violations,
+        (SELECT count(DISTINCT center_code) FROM current_center) as police_stations_count,
+        (SELECT hour_val FROM peak_hour) as peak_hour,
+        (SELECT dow FROM peak_day) as peak_day,
+        (SELECT name FROM lead_ps) as lead_station_name,
+        (SELECT entropy FROM entropy_calc) as predictability_entropy
+    `;
+  },
+
+  getGeoBehaviouralTwins: (filters) => {
+    const centerCode = filters.centerCode;
+    const filterWithoutCenter = { ...filters, centerCode: 'all' };
+    const whereClauseAll = QUERIES.getGeospatialBaseFilter(filterWithoutCenter);
+    
+    // Calculates cosine similarity of the 24-hour distribution
+    return `
+      WITH hourly_vectors AS (
+        SELECT 
+          v.center_code, 
+          extract('hour' from v.created_datetime) as hour_val, 
+          COUNT(*) as hour_count
+        FROM violations v
+        ${whereClauseAll}
+        GROUP BY v.center_code, hour_val
+      ),
+      vector_norms AS (
+        SELECT 
+          center_code, 
+          sqrt(sum(hour_count * hour_count)) as norm
+        FROM hourly_vectors
+        GROUP BY center_code
+      ),
+      target_vector AS (
+        SELECT hour_val, hour_count, norm
+        FROM hourly_vectors h
+        JOIN vector_norms n ON h.center_code = n.center_code
+        WHERE h.center_code = ${centerCode}
+      ),
+      similarities AS (
+        SELECT 
+          h.center_code,
+          sum(h.hour_count * t.hour_count) / (n.norm * MAX(t.norm)) as cosine_sim
+        FROM hourly_vectors h
+        JOIN target_vector t ON h.hour_val = t.hour_val
+        JOIN vector_norms n ON h.center_code = n.center_code
+        WHERE h.center_code != ${centerCode}
+        GROUP BY h.center_code, n.norm
+        ORDER BY cosine_sim DESC
+        LIMIT 3
+      ),
+      similar_hourly_counts AS (
+        SELECT 
+          s.center_code, 
+          v.hour_val, 
+          v.hour_count
+        FROM similarities s
+        JOIN hourly_vectors v ON s.center_code = v.center_code
+      ),
+      all_hours AS (
+        SELECT UNNEST(generate_series(0, 23)) as h
+      ),
+      fingerprints AS (
+        SELECT 
+          s.center_code,
+          list(COALESCE(hc.hour_count, 0) ORDER BY ah.h ASC) as hourly_fingerprint
+        FROM similarities s
+        CROSS JOIN all_hours ah
+        LEFT JOIN similar_hourly_counts hc ON hc.center_code = s.center_code AND hc.hour_val = ah.h
+        GROUP BY s.center_code
+      )
+      SELECT 
+        s.center_code as code,
+        c.police_station as name,
+        s.cosine_sim as similarity,
+        f.hourly_fingerprint
+      FROM similarities s
+      JOIN fingerprints f ON s.center_code = f.center_code
+      LEFT JOIN dim_center_code c ON CAST(s.center_code AS VARCHAR) = CAST(c.center_code AS VARCHAR)
+      ORDER BY s.cosine_sim DESC
+    `;
+  },
+
+  getGeoTopOffences: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
+    return `
+      SELECT 
+        CAST(code AS VARCHAR) as code,
+        d.violation_type as name,
+        count(*) as count
+      FROM (
+        SELECT UNNEST(offence_code) as code 
+        FROM violations v
+        ${whereClause}
+      )
+      LEFT JOIN dim_offence_code d ON CAST(code AS VARCHAR) = CAST(d.offence_code AS VARCHAR)
+      GROUP BY code, d.violation_type
+      ORDER BY count DESC
+      LIMIT 5
+    `;
+  },
+
+  getGeoVehicleMix: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
+    return `
+      SELECT 
+        v.vehicle_type as type,
+        count(*) as count
+      FROM violations v
+      ${whereClause} AND v.vehicle_type IS NOT NULL
+      GROUP BY v.vehicle_type
+      ORDER BY count DESC
+      LIMIT 6
+    `;
+  },
+
+  getGeoHourlyProfile: (filters) => {
+    const whereClause = QUERIES.getGeospatialBaseFilter(filters);
+    return `
+      WITH hourly_counts AS (
+        SELECT 
+          extract('hour' from v.created_datetime) as hour_val, 
+          COUNT(*) as count
+        FROM violations v
+        ${whereClause}
+        GROUP BY hour_val
+      )
+      SELECT 
+        h2.h as hour_val,
+        COALESCE(h.count, 0) as count
+      FROM (SELECT UNNEST(generate_series(0, 23)) as h) h2
+      LEFT JOIN hourly_counts h ON h.hour_val = h2.h
+      ORDER BY h2.h ASC
+    `;
+  },
+
+  // --- End Geospatial Queries ---
+
 
   // Executive Summary Queries
   getExecutiveDateRange: () => `
