@@ -99,14 +99,29 @@ self.onmessage = async (e) => {
       const startTime = performance.now();
       const result = await conn.query(sql);
       const queryTime = performance.now() - startTime;
-      console.log(`[Worker] Query ${queryId} completed in ${queryTime.toFixed(2)}ms. Serializing...`);
+      console.log(`[Worker] Query ${queryId} completed in ${queryTime.toFixed(2)}ms. Extracting native arrays...`);
       
-      // Serialize the Arrow Table to IPC buffer so it can be safely sent across postMessage
-      const buffer = tableToIPC(result);
-      console.log(`[Worker] Query ${queryId} serialized. Buffer size: ${buffer.byteLength} bytes. Sending to main thread...`);
+      // Extract raw TypedArrays natively to bypass apache-arrow's tableToIPC minification bugs.
+      // This is memory-equivalent to raw arrow formats (zero-copy binary transfer).
+      const parsed = {};
+      const transferList = [];
       
-      // Transfer the buffer for zero-copy memory efficiency
-      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } }, [buffer.buffer]);
+      if (result && result.schema && result.schema.fields) {
+        result.schema.fields.forEach(field => {
+          const colName = field.name;
+          const column = result.getChild(colName);
+          if (column) {
+            // column.toArray() returns a TypedArray view of the WASM memory.
+            // We use .slice() to create an isolated ArrayBuffer for this column so we don't transfer the entire WASM heap!
+            const typedArray = column.toArray().slice();
+            parsed[colName] = typedArray;
+            transferList.push(typedArray.buffer);
+          }
+        });
+      }
+      
+      console.log(`[Worker] Query ${queryId} extracted ${Object.keys(parsed).length} columns. Sending to main thread...`);
+      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer: parsed } }, transferList);
       console.log(`[Worker] Query ${queryId} message posted.`);
     } catch (error) {
       console.error(`[Worker] Query error for ${queryId}:`, error);
