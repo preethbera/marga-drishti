@@ -3,22 +3,7 @@ import { Car } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, Cell } from 'recharts';
 import { Skeleton } from '../ui/skeleton';
 
-const CustomTooltip = ({ active, payload, total }) => {
-  if (active && payload && payload.length) {
-    const count = Number(payload[0].value);
-    const share = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-    
-    return (
-      <div className="bg-popover text-popover-foreground border shadow-sm rounded-lg p-3">
-        <p className="font-medium text-sm">{payload[0].payload.type}</p>
-        <p className="text-xl font-bold mt-1" style={{ color: `var(--chart-${(payload[0].payload.index % 8) + 1})` }}>
-          {count.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">({share}%)</span>
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+import { CustomChartTooltip } from '@/components/ui/recharts-tooltip';
 
 export default function VehicleMix({ vehicleMix, stats, isLoading }) {
   const chartData = useMemo(() => {
@@ -79,7 +64,14 @@ export default function VehicleMix({ vehicleMix, stats, isLoading }) {
                 tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
                 width={45}
               />
-              <RechartsTooltip cursor={{ fill: 'var(--muted)', fillOpacity: 0.4 }} content={<CustomTooltip total={currentTotal} />} />
+              <RechartsTooltip 
+                cursor={{ fill: 'var(--muted)', fillOpacity: 0.4 }} 
+                content={<CustomChartTooltip />} 
+                formatter={(value) => {
+                  const share = currentTotal > 0 ? ((Number(value) / currentTotal) * 100).toFixed(1) : 0;
+                  return [`${Number(value).toLocaleString()} (${share}%)`, "Count"];
+                }}
+              />
               <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={`var(--chart-${(index % 8) + 1})`} />

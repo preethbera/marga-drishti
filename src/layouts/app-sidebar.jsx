@@ -69,7 +69,7 @@ const data = {
         },
         {
           title: "Network Intelligence",
-          url: "/network/intelligence",
+          url: "/simulation/network",
         },
       ],
     },

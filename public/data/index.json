@@ -17,6 +17,12 @@
     "tableName": "dim_offence_code"
   },
   {
+    "name": "mappings/vehicle_type_to_pcu_value.json",
+    "type": "mapping",
+    "format": "json",
+    "tableName": "dim_vehicle_type_to_pcu_value"
+  },
+  {
     "name": "segments/bengaluru_segments_optimized.parquet",
     "type": "segments",
     "format": "parquet"

@@ -1,0 +1,90 @@
+[
+    {
+        "vehicle_type":"CAR",
+        "pcu_value":1.0
+    },
+    {
+        "vehicle_type":"JEEP",
+        "pcu_value":1.0
+    },
+    {
+        "vehicle_type":"VAN",
+        "pcu_value":1.0
+    },
+    {
+        "vehicle_type":"MAXI-CAB",
+        "pcu_value":1.0
+    },
+    {
+        "vehicle_type":"SCOOTER",
+        "pcu_value":0.5
+    },
+    {
+        "vehicle_type":"MOTOR CYCLE",
+        "pcu_value":0.5
+    },
+    {
+        "vehicle_type":"MOPED",
+        "pcu_value":0.5
+    },
+    {
+        "vehicle_type":"PASSENGER AUTO",
+        "pcu_value":1.2
+    },
+    {
+        "vehicle_type":"GOODS AUTO",
+        "pcu_value":1.2
+    },
+    {
+        "vehicle_type":"LGV",
+        "pcu_value":1.5
+    },
+    {
+        "vehicle_type":"MINI LORRY",
+        "pcu_value":1.5
+    },
+    {
+        "vehicle_type":"TEMPO",
+        "pcu_value":1.5
+    },
+    {
+        "vehicle_type":"BUS (BMTC\/KSRTC)",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"PRIVATE BUS",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"SCHOOL VEHICLE",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"TOURIST BUS",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"FACTORY BUS",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"HGV",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"LORRY\/GOODS VEHICLE",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"TANKER",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"TRACTOR",
+        "pcu_value":3.0
+    },
+    {
+        "vehicle_type":"OTHERS",
+        "pcu_value":1.0
+    }
+]

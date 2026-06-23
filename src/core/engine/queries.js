@@ -212,6 +212,17 @@ export const QUERIES = {
          conditions.push(`extract('dow' from created_datetime) = ${dowMap[filters.dayOfWeek]}`);
       }
     }
+    if (filters?.dateRange?.from) {
+      // Use YYYY-MM-DD formatting for duckdb
+      const fromStr = filters.dateRange.from.toISOString().split('T')[0];
+      conditions.push(`created_datetime >= '${fromStr} 00:00:00'`);
+      if (filters.dateRange.to) {
+        const toStr = filters.dateRange.to.toISOString().split('T')[0];
+        conditions.push(`created_datetime <= '${toStr} 23:59:59'`);
+      } else {
+        conditions.push(`created_datetime <= '${fromStr} 23:59:59'`);
+      }
+    }
     return conditions;
   },
 
@@ -305,5 +316,70 @@ export const QUERIES = {
     FROM stats s
     CROSS JOIN global_stats g
     ORDER BY s.dow ASC, s.hour_val ASC
+  `,
+
+  // --- Simulation Studio Queries ---
+  
+  getSimulationSegments: () => `
+    SELECT 
+      CAST(segment_id AS VARCHAR) as code,
+      CAST(segment_id AS VARCHAR) as name,
+      width_m as width,
+      lanes,
+      0 as traffic_level,
+      road_class
+    FROM segments
+    ORDER BY segment_id ASC
+  `,
+
+  getSegmentParkingViolations: (segmentId) => `
+    SELECT 
+      SUM(p.pcu_value) as total_pcu
+    FROM violations v
+    LEFT JOIN dim_vehicle_type_to_pcu_value p ON v.vehicle_type = p.vehicle_type
+      WHERE CAST(v.segment_id AS VARCHAR) = '${segmentId}'
+        AND v.offence_code != [] 
+  `,
+
+  // --- Network Intelligence Queries ---
+  
+  getNetworkIntelligenceData: (filters) => {
+    let dateCondition = "";
+    if (filters?.startDate && filters?.endDate) {
+      dateCondition = `AND v.created_datetime >= '${filters.startDate}' AND v.created_datetime <= '${filters.endDate}'`;
+    }
+
+    return `
+      WITH segment_violations AS (
+        SELECT 
+          CAST(v.segment_id AS VARCHAR) as segment_id,
+          SUM(p.pcu_value) as total_pcu,
+          COUNT(*) as violation_count
+        FROM violations v
+        LEFT JOIN dim_vehicle_type_to_pcu_value p ON v.vehicle_type = p.vehicle_type
+        WHERE v.segment_id != -1 
+          AND v.offence_code != [] 
+          ${dateCondition}
+        GROUP BY v.segment_id
+      )
+      SELECT 
+        CAST(s.segment_id AS VARCHAR) as code,
+        s.width_m as width,
+        s.length_m as length,
+        s.lanes,
+        s.road_class,
+        ST_AsGeoJSON(s.geometry) as geometry,
+        COALESCE(sv.total_pcu, 0) as total_pcu,
+        COALESCE(sv.violation_count, 0) as violation_count
+      FROM segments s
+      LEFT JOIN segment_violations sv ON CAST(s.segment_id AS VARCHAR) = sv.segment_id
+    `;
+  },
+
+  getNetworkDateRange: () => `
+    SELECT 
+      MIN(created_datetime) as min_date,
+      MAX(created_datetime) as max_date
+    FROM violations
   `
 };

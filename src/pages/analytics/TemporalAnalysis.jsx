@@ -4,10 +4,9 @@ import { useDataStore } from '../../store/useDataStore';
 import { useTemporalStore } from '../../store/useTemporalStore';
 import PageHeader from '../../components/temporal/PageHeader';
 import KPIStrip from '../../components/temporal/KPIStrip';
-import ToolbarRow from '../../components/temporal/ToolbarRow';
-import ComparePresetRow from '../../components/temporal/ComparePresetRow';
+import FilterSidebar from '../../components/temporal/FilterSidebar';
 import TemporalMapColumn from '../../components/temporal/TemporalMapColumn';
-import SidebarColumn from '../../components/temporal/SidebarColumn';
+import InsightsRow from '../../components/temporal/InsightsRow';
 import DayHourHeatmap from '../../components/temporal/DayHourHeatmap';
 import { Loader2 } from 'lucide-react';
 
@@ -98,59 +97,19 @@ export default function TemporalAnalysis() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEngineReady]);
 
-  // Handlers
-  const handlePresetSelect = useCallback((range) => {
-    resetPlayback();
-    setFiltersA({ timeRange: range });
-  }, [setFiltersA, resetPlayback]);
-
-  const handleCompareToggle = useCallback(() => {
-    setCompareMode(!compareMode);
-  }, [compareMode, setCompareMode]);
-
-  const handleSelectComparePreset = useCallback((presetA, presetB) => {
-    setFiltersA(presetA);
-    setFiltersB(presetB);
-  }, [setFiltersA, setFiltersB]);
-
-  const handleFilterChange = useCallback((newFilters) => {
-    resetPlayback();
-    setFiltersA(newFilters);
-  }, [setFiltersA, resetPlayback]);
-
-  const handleFilterBChange = useCallback((newFilters) => {
-    setFiltersB(newFilters);
-  }, [setFiltersB]);
-
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] w-full overflow-hidden animate-in fade-in duration-500 bg-background relative">
-      
-      <div className="flex-1 overflow-y-auto flex flex-col items-center custom-scrollbar">
-        <div className="w-full max-w-[1600px] flex flex-col gap-4 pb-8">
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] w-full overflow-y-auto custom-scrollbar animate-in fade-in duration-500 bg-background relative">
+      <div className="w-full flex flex-col gap-4 p-6 pb-8">
+        
+        {/* Full-width Top Headers */}
+        <PageHeader />
+        <KPIStrip kpis={dataA?.kpis} />
+        
+        <div className="flex flex-col lg:flex-row gap-4 w-full h-[600px] xl:h-[700px] 2xl:h-[800px]">
           
-          <PageHeader />
-          
-          <KPIStrip kpis={dataA?.kpis} />
-          
-          <ToolbarRow 
-            currentRange={filtersA.timeRange}
-            onPresetSelect={handlePresetSelect}
-            isPlaying={playbackState.isPlaying}
-            onPlayToggle={togglePlayback}
-            onReset={resetPlayback}
-            compareMode={compareMode}
-            onCompareToggle={handleCompareToggle}
-            activeLayer={activeLayer}
-            onLayerChange={setActiveLayer}
-          />
-
-          {compareMode && (
-            <ComparePresetRow onSelectComparePreset={handleSelectComparePreset} />
-          )}
-
-          {/* Main Layout Area */}
-          <div className="flex flex-col lg:flex-row gap-4 px-6 h-auto lg:h-[600px] shrink-0 w-full">
-            <div className="w-full lg:w-[68%] h-[500px] lg:h-full shrink-0">
+          {/* Left Side: Map and Insights */}
+          <div className="flex-1 flex flex-col gap-4 min-w-0 h-full">
+            <div className="w-full flex-1 min-h-0 shrink-0">
               <TemporalMapColumn 
                 compareMode={compareMode}
                 activeLayer={activeLayer}
@@ -164,28 +123,40 @@ export default function TemporalAnalysis() {
               />
             </div>
             
-            <div className="w-full lg:w-[32%] h-auto lg:h-full shrink-0">
-              <SidebarColumn 
-                compareMode={compareMode}
-                filtersA={filtersA}
-                setFiltersA={handleFilterChange}
-                filtersB={filtersB}
-                setFiltersB={handleFilterBChange}
-                dataA={dataA}
-                dataB={dataB}
-              />
-            </div>
+            {!compareMode && (
+              <div className="w-full shrink-0">
+                <InsightsRow dataA={dataA} filtersA={filtersA} />
+              </div>
+            )}
           </div>
 
-          <div className="px-6 w-full shrink-0">
-            <DayHourHeatmap 
-              data={weeklyHeatmapData}
-              filters={filtersA}
-              setFilters={handleFilterChange}
+          {/* Right Side: Filter Sidebar */}
+          <div className="w-full lg:w-[320px] shrink-0 h-full border rounded-lg overflow-hidden bg-card shadow-sm">
+            <FilterSidebar 
+              filtersA={filtersA}
+              setFiltersA={setFiltersA}
+              filtersB={filtersB}
+              setFiltersB={setFiltersB}
+              compareMode={compareMode}
+              setCompareMode={setCompareMode}
+              activeLayer={activeLayer}
+              setActiveLayer={setActiveLayer}
+              playbackState={playbackState}
+              togglePlayback={togglePlayback}
+              resetPlayback={resetPlayback}
             />
           </div>
-
         </div>
+
+        {/* Full-width Bottom: Heatmap */}
+        <div className="w-full shrink-0">
+          <DayHourHeatmap 
+            data={weeklyHeatmapData}
+            filters={filtersA}
+            setFilters={setFiltersA}
+          />
+        </div>
+
       </div>
 
       {/* Loading Overlay */}

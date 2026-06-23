@@ -24,23 +24,6 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
     return matrix;
   }, [data]);
 
-  const isCellActive = (dow, hour) => {
-    const isDowMatch = filters.dayOfWeek === 'all' || filters.dayOfWeek === DOW_LABELS[dow];
-    const isHourMatch = hour >= filters.timeRange[0] && hour <= filters.timeRange[1];
-    return isDowMatch && isHourMatch;
-  };
-
-  const handleCellClick = (dow, hour) => {
-    setFilters({ dayOfWeek: DOW_LABELS[dow], timeRange: [hour, hour] });
-  };
-
-  const handleDowClick = (dow) => {
-    setFilters({ dayOfWeek: DOW_LABELS[dow], timeRange: [0, 23] });
-  };
-
-  const handleHourClick = (hour) => {
-    setFilters({ dayOfWeek: 'all', timeRange: [hour, hour] });
-  };
 
   const getColor = (count) => {
     if (!count) return 'bg-muted/30';
@@ -62,7 +45,7 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
             <CardTitle className="text-base">Day × Hour Violation Heatmap</CardTitle>
           </div>
           <CardDescription className="text-xs">
-            The whole week at a glance — darker cells indicate higher violation volume. Click or drag to filter the map above.
+            The whole week at a glance — darker cells indicate higher violation volume.
           </CardDescription>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -78,8 +61,7 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
             {DOW_LABELS.map((day, i) => (
               <div 
                 key={day} 
-                className="h-8 flex items-center justify-end text-[10px] font-medium text-muted-foreground cursor-pointer hover:text-foreground"
-                onClick={() => handleDowClick(i)}
+                className="h-8 flex items-center justify-end text-[10px] font-medium text-muted-foreground"
               >
                 {day}
               </div>
@@ -93,8 +75,7 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
               {HOURS.map((hour) => (
                 <div 
                   key={hour} 
-                  className="flex-1 min-w-4 text-center text-[10px] font-medium text-muted-foreground cursor-pointer hover:text-foreground"
-                  onClick={() => handleHourClick(hour)}
+                  className="flex-1 min-w-4 text-center text-[10px] font-medium text-muted-foreground"
                 >
                   {hour % 3 === 0 ? hour : ''}
                 </div>
@@ -107,17 +88,14 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
                 {row.map((cellData, hour) => {
                   const count = cellData?.count || 0;
                   const isAnomaly = cellData && cellData.count > (cellData.mean + 1.5 * cellData.std);
-                  const active = isCellActive(dow, hour);
                   
                   return (
                     <div
                       key={hour}
                       className={`
-                        relative flex-1 min-w-4 h-8 rounded-sm cursor-pointer transition-colors
+                        relative flex-1 min-w-4 h-8 rounded-sm transition-colors
                         ${getColor(count)}
-                        ${active ? 'ring-2 ring-primary ring-inset z-10' : 'hover:ring-1 hover:ring-foreground/50'}
                       `}
-                      onClick={() => handleCellClick(dow, hour)}
                       title={`${DOW_LABELS[dow]} ${hour}:00 - ${count.toLocaleString()} violations`}
                     >
                       {isAnomaly && (
@@ -133,7 +111,6 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-4 text-[11px] text-muted-foreground">
-          <span>Click a cell, or use a row/column header to filter the map.</span>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-yellow-400 rounded-full" />
             <span>Anomaly (&gt;1.5σ above mean)</span>

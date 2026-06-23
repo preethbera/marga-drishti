@@ -6,14 +6,15 @@ import { GEOSPATIAL_CONFIG } from '../core/config/geospatial';
 
 const INITIAL_FILTERS = {
   timeRange: [0, 23],
-  dayOfWeek: 'all'
+  dayOfWeek: 'all',
+  dateRange: null
 };
 
 export const useTemporalStore = create((set, get) => ({
   filtersA: { ...INITIAL_FILTERS },
   filtersB: { ...INITIAL_FILTERS },
   compareMode: false,
-  activeLayer: 'Hexbins', // Hexbins, Heatmap, Points, Impact
+  activeLayer: 'Points',
   playbackState: { isPlaying: false, intervalId: null },
   
   viewState: GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE,

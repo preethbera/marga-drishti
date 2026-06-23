@@ -3,20 +3,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as Recharts
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    const formattedDate = label ? format(parseISO(label), 'MMM dd, yyyy') : '';
-    return (
-      <div className="bg-popover text-popover-foreground border shadow-sm rounded-lg p-3">
-        <p className="font-medium text-sm">{formattedDate}</p>
-        <p className="text-2xl font-bold mt-1" style={{ color: "var(--chart-1)" }}>
-          {Number(payload[0].value).toLocaleString()}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+import { CustomChartTooltip } from '@/components/ui/recharts-tooltip';
 
 export default function DailyVolumeTrend({ trendData, stats, isLoading }) {
   const chartData = useMemo(() => {
@@ -84,7 +71,17 @@ export default function DailyVolumeTrend({ trendData, stats, isLoading }) {
               tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
               width={45}
             />
-            <RechartsTooltip content={<CustomTooltip />} />
+            <RechartsTooltip 
+              content={<CustomChartTooltip />} 
+              formatter={(value) => [Number(value).toLocaleString(), "Tickets"]}
+              labelFormatter={(label) => {
+                try {
+                  return label ? format(parseISO(label), 'MMM dd, yyyy') : '';
+                } catch {
+                  return label;
+                }
+              }}
+            />
             <Area 
               type="monotone" 
               dataKey="count" 

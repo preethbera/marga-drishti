@@ -23,7 +23,7 @@ export default function KPIStrip({ kpis }) {
     : 'N/A';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 w-full shrink-0">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full shrink-0">
       <Card>
         <CardContent className="p-4 flex flex-col gap-1 justify-between h-full">
           <div className="flex justify-between items-start">
