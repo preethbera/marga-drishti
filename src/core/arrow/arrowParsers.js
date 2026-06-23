@@ -18,6 +18,11 @@ export function parseArrowBuffer(buffer) {
   return result;
 }
 
+export function parseArrowToTable(buffer) {
+  // Returns the raw Apache Arrow Table without converting to JS objects
+  return tableFromIPC(buffer);
+}
+
 export function extractCoordinates(buffer, geomColName = 'geometry') {
   const table = tableFromIPC(buffer);
   const geomColumn = table.getChild(geomColName);

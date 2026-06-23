@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { executeQuery } from '../core/engine/queryClient';
 import { QUERIES } from '../core/engine/queries';
-import { parseArrowBuffer } from '../core/arrow/arrowParsers';
+import { parseArrowBuffer, parseArrowToTable } from '../core/arrow/arrowParsers';
 import { GEOSPATIAL_CONFIG } from '../core/config/geospatial';
 
 export const useGeospatialStore = create((set, get) => ({
@@ -14,8 +14,17 @@ export const useGeospatialStore = create((set, get) => ({
   viewState: GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE,
   
   data: {
-    aggregated: [],
-    detailed: [],
+    // Arrow Tables
+    mapAggregated: null,
+    mapDetailed: null,
+    top10: null,
+    drillDownStats: null,
+    twins: null,
+    topOffences: null,
+    vehicleMix: null,
+    hourlyProfile: null,
+    
+    // JS Objects for comboboxes
     mappings: {
       centers: [],
       offences: [],
@@ -90,44 +99,64 @@ export const useGeospatialStore = create((set, get) => ({
 
     try {
       if (filters.centerCode === 'all') {
-        // Fetch Aggregated data
-        const sql = QUERIES.getCenterAggregations(filters);
-        const buffer = await executeQuery(sql);
-        const parsed = parseArrowBuffer(buffer);
-        
-        const aggregated = [];
-        if (parsed.code) {
-          for (let i = 0; i < parsed.code.length; i++) {
-            aggregated.push({
-              code: parsed.code[i],
-              name: parsed.name[i],
-              count: Number(parsed.count[i]),
-              latitude: parsed.latitude[i],
-              longitude: parsed.longitude[i]
-            });
-          }
-        }
-        
-        set((state) => ({ data: { ...state.data, aggregated }, isLoading: false }));
+        // --- CITY WIDE MODE ---
+        // Run concurrent queries for city-wide view
+        const [aggBuf, top10Buf, detailedBuf] = await Promise.all([
+          executeQuery(QUERIES.getGeoCityAggregations(filters)),
+          executeQuery(QUERIES.getGeoTop10List(filters)),
+          executeQuery(QUERIES.getGeoDetailedViolations(filters)) // Needed for heatmap
+        ]);
+
+        set((state) => ({ 
+          data: { 
+            ...state.data, 
+            mapAggregated: parseArrowToTable(aggBuf),
+            top10: parseArrowToTable(top10Buf),
+            mapDetailed: parseArrowToTable(detailedBuf),
+            // Clear drill-down specific data
+            drillDownStats: null,
+            twins: null,
+            topOffences: null,
+            vehicleMix: null,
+            hourlyProfile: null
+          }, 
+          isLoading: false 
+        }));
       } else {
-        // Fetch Detailed data for Heatmap
-        const sql = QUERIES.getDetailedViolations(filters);
-        const buffer = await executeQuery(sql);
-        const parsed = parseArrowBuffer(buffer);
-        
-        const detailed = [];
-        if (parsed.latitude) {
-          for (let i = 0; i < parsed.latitude.length; i++) {
-            detailed.push({
-              latitude: parsed.latitude[i],
-              longitude: parsed.longitude[i],
-              vehicle_type: parsed.vehicle_type[i],
-              offence_code: parsed.offence_code[i]
-            });
-          }
-        }
-        
-        set((state) => ({ data: { ...state.data, detailed }, isLoading: false }));
+        // --- DRILL DOWN MODE ---
+        // Run concurrent queries for a specific center
+        const [
+          detailedBuf, 
+          statsBuf, 
+          twinsBuf, 
+          offencesBuf, 
+          vehicleBuf, 
+          profileBuf
+        ] = await Promise.all([
+          executeQuery(QUERIES.getGeoDetailedViolations(filters)),
+          executeQuery(QUERIES.getGeoDrillDownStats(filters)),
+          executeQuery(QUERIES.getGeoBehaviouralTwins(filters)),
+          executeQuery(QUERIES.getGeoTopOffences(filters)),
+          executeQuery(QUERIES.getGeoVehicleMix(filters)),
+          executeQuery(QUERIES.getGeoHourlyProfile(filters))
+        ]);
+
+        set((state) => ({ 
+          data: { 
+            ...state.data, 
+            mapDetailed: parseArrowToTable(detailedBuf),
+            drillDownStats: parseArrowToTable(statsBuf),
+            twins: parseArrowToTable(twinsBuf),
+            topOffences: parseArrowToTable(offencesBuf),
+            vehicleMix: parseArrowToTable(vehicleBuf),
+            hourlyProfile: parseArrowToTable(profileBuf),
+            // Keep mapAggregated and top10 as they were before drill-down, 
+            // or clear them if we don't need them in memory
+            mapAggregated: null,
+            top10: null
+          }, 
+          isLoading: false 
+        }));
       }
     } catch (error) {
       console.error('Error fetching geospatial data:', error);
