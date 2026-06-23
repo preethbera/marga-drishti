@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import AnalyticsMap from '../ui/analytics-map';
-import { GEOSPATIAL_CONFIG } from '../../core/config/map';
+import { GEOSPATIAL_CONFIG, getDynamicViewState } from '../../core/config/map';
 import { Layers, Home } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -18,7 +18,10 @@ export default function TemporalMapColumn({
   isPlaying
 }) {
   const onResetCamera = () => {
-    onViewStateChange(GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE);
+    const mapContainer = document.getElementById('temporal-map-container');
+    const w = mapContainer ? mapContainer.clientWidth : 800;
+    const h = mapContainer ? mapContainer.clientHeight : 600;
+    onViewStateChange(getDynamicViewState(dataA?.violations, w, h));
   };
 
   const renderOverlayBadge = (title, filters, kpis, isA) => {
@@ -80,7 +83,7 @@ export default function TemporalMapColumn({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full h-full relative border rounded-lg overflow-hidden bg-muted/20">
+    <div id="temporal-map-container" className="flex-1 flex flex-col w-full h-full relative border rounded-lg overflow-hidden bg-muted/20">
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <Select value={activeLayer} onValueChange={setActiveLayer}>
           <SelectTrigger className="w-32 !h-9 bg-background hover:bg-background dark:bg-background dark:hover:bg-background border rounded-md shadow-sm font-semibold focus:ring-0 focus:ring-offset-0">
@@ -102,7 +105,7 @@ export default function TemporalMapColumn({
           size="icon" 
           className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
           onClick={onResetCamera}
-          title="Home View"
+          title="Fit to Data"
         >
           <Home className="w-4 h-4" />
         </Button>

@@ -42,7 +42,7 @@ function Top10Mode({ onCenterSelect }) {
           <span className="font-bold text-lg leading-none">{formatNumber(count)}</span>
         </div>
         
-        <div className="w-full h-1 bg-muted rounded-full mb-2 overflow-hidden ml-7 w-[calc(100%-1.75rem)]">
+        <div className="h-1 bg-muted rounded-full mb-2 overflow-hidden ml-7 w-[calc(100%-1.75rem)]">
           <div 
             className="h-full bg-primary rounded-full transition-all"
             style={{ width: `${Math.max(2, (count / maxCount) * 100)}%` }}
@@ -141,21 +141,22 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
 
   return (
     <div className="flex flex-col w-full h-full overflow-y-auto">
-      <div className="p-4 border-b bg-muted/10 sticky top-0 z-10 backdrop-blur-sm">
-        <button 
-          onClick={onClearCenter}
-          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-3 transition-colors"
-        >
-          <ArrowLeft className="w-3 h-3" /> Back to city
-        </button>
-        <div className="flex items-start gap-2 mb-1">
-          <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-          <div>
-            <h2 className="font-bold text-lg leading-tight">{centerName}</h2>
-            <p className="text-xs text-muted-foreground">Centre {filters.centerCode}</p>
+      <div className="p-4 border-b bg-popover sticky top-0 z-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <MapPin className="w-5 h-5 text-primary shrink-0" />
+            <h2 className="font-bold text-lg leading-tight truncate" title={`${filters.centerCode} - ${centerName}`}>
+              {filters.centerCode} - {centerName}
+            </h2>
           </div>
+          <button 
+            onClick={onClearCenter}
+            className="text-xs font-semibold bg-background hover:bg-muted border border-border text-foreground px-2.5 py-1.5 rounded-md flex items-center gap-1.5 transition-colors shrink-0 shadow-sm"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back
+          </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-1">
           <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">
             Hourly Fingerprint (0–23)
           </div>

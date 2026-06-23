@@ -119,3 +119,45 @@ export const GEOSPATIAL_CONFIG = {
     }
   }
 };
+
+import { WebMercatorViewport } from '@deck.gl/core';
+
+export function getDynamicViewState(data, viewportWidth = 800, viewportHeight = 600) {
+  if (!data || !data.longitude || data.length === 0) return GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE;
+  
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+  const len = data.length;
+  
+  for (let i = 0; i < len; i++) {
+    const lng = Number(data.longitude[i]);
+    const lat = Number(data.latitude[i]);
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+  
+  // If data is invalid or just a single point
+  if (minLng === Infinity || minLng === maxLng) {
+    return GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE;
+  }
+
+  try {
+    const viewport = new WebMercatorViewport({ width: viewportWidth, height: viewportHeight });
+    const { longitude, latitude, zoom } = viewport.fitBounds(
+      [[minLng, minLat], [maxLng, maxLat]],
+      { padding: 50 }
+    );
+    
+    return {
+      ...GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE,
+      longitude,
+      latitude,
+      // Cap the maximum zoom so we don't zoom into a tiny street level for small datasets
+      zoom: Math.min(zoom, 14), 
+      transitionDuration: 500
+    };
+  } catch (e) {
+    return GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE;
+  }
+}

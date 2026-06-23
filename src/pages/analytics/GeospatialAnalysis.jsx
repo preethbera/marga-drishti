@@ -6,7 +6,7 @@ import SidePanel from '../../components/geospatial/SidePanel';
 import GeospatialHeader from '../../components/geospatial/GeospatialHeader';
 import GeospatialInsightsRow from '../../components/geospatial/GeospatialInsightsRow';
 import AnalyticsMap from '../../components/ui/analytics-map';
-import { GEOSPATIAL_CONFIG } from '../../core/config/map';
+import { GEOSPATIAL_CONFIG, getDynamicViewState } from '../../core/config/map';
 import { Loader2, Layers, MapPin, Activity, Home, ArrowLeft } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -26,7 +26,7 @@ export default function GeospatialAnalysis() {
     fetchData 
   } = useGeospatialStore();
 
-  const [activeLayerMode, setActiveLayerMode] = React.useState('Hexbins'); // 'Hexbins', 'Bubbles', 'Heatmap'
+  const [activeLayerMode, setActiveLayerMode] = React.useState('Bubbles'); // 'Hexbins', 'Bubbles', 'Heatmap'
 
   useEffect(() => {
     initializeDataEngine();
@@ -114,7 +114,7 @@ export default function GeospatialAnalysis() {
 
         <div className="flex flex-col lg:flex-row gap-4 w-full h-[600px] xl:h-[700px] 2xl:h-[800px]">
           {/* Left Side: Map */}
-          <div className="flex-1 flex w-full min-h-0 border rounded-lg overflow-hidden relative">
+          <div id="geospatial-map-container" className="flex-1 flex w-full min-h-0 border rounded-lg overflow-hidden relative">
             <AnalyticsMap 
               viewState={viewState}
               onViewStateChange={setViewState}
@@ -139,41 +139,53 @@ export default function GeospatialAnalysis() {
                 }
               ]}
             >
-              <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-                <Select value={activeLayerMode} onValueChange={setActiveLayerMode}>
-                  <SelectTrigger className="w-32 !h-9 bg-background hover:bg-background dark:bg-background dark:hover:bg-background border rounded-md shadow-sm font-semibold focus:ring-0 focus:ring-offset-0">
-                    <div className="flex items-center">
-                      <Layers className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                      <SelectValue placeholder="Layer" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent position="popper" side="bottom" sideOffset={4} alignItemWithTrigger={false} className="bg-background dark:bg-background">
-                    <SelectItem value="Hexbins">3D Hex</SelectItem>
-                    <SelectItem value="Bubbles">{isDetailed ? 'Points' : 'Bubbles'}</SelectItem>
-                    <SelectItem value="Heatmap">Heatmap</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
-                  onClick={() => setViewState(GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE)}
-                  title="Home View"
-                >
-                  <Home className="w-4 h-4" />
-                </Button>
+              <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 pointer-events-none">
+                <div className="flex items-center gap-2 pointer-events-auto">
+                  <Select value={activeLayerMode} onValueChange={setActiveLayerMode}>
+                    <SelectTrigger className="w-32 !h-9 bg-background hover:bg-background dark:bg-background dark:hover:bg-background border rounded-md shadow-sm font-semibold focus:ring-0 focus:ring-offset-0">
+                      <div className="flex items-center">
+                        <Layers className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                        <SelectValue placeholder="Layer" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent position="popper" side="bottom" sideOffset={4} alignItemWithTrigger={false} className="bg-background dark:bg-background">
+                      <SelectItem value="Hexbins">3D Hex</SelectItem>
+                      <SelectItem value="Bubbles">{isDetailed ? 'Points' : 'Bubbles'}</SelectItem>
+                      <SelectItem value="Heatmap">Heatmap</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
+                    onClick={() => {
+                      const currentData = isDetailed ? data.mapDetailed : (activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed);
+                      const mapContainer = document.getElementById('geospatial-map-container');
+                      const w = mapContainer ? mapContainer.clientWidth : 800;
+                      const h = mapContainer ? mapContainer.clientHeight : 600;
+                      setViewState(getDynamicViewState(currentData, w, h));
+                    }}
+                    title="Fit to Data"
+                  >
+                    <Home className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {isDetailed && (
+                  <Button 
+                    variant="outline"
+                    onClick={handleClearCenter}
+                    className="pointer-events-auto h-9 w-full rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent text-xs font-semibold flex items-center justify-center gap-1.5"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to city view
+                  </Button>
+                )}
               </div>
 
               {/* Drill-down overlay */}
               {isDetailed && (
                 <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
-                  <button 
-                    onClick={handleClearCenter}
-                    className="pointer-events-auto bg-foreground text-background hover:bg-foreground/90 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors w-fit"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" /> Back to city view
-                  </button>
                   <div className="bg-card/90 backdrop-blur-md border rounded-md p-3 shadow-sm flex flex-col max-w-[250px]">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Drill-Down</span>
                     <span className="font-bold text-base leading-tight truncate">

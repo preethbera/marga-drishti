@@ -6,6 +6,7 @@ import Layout from "@layouts/Layout";
 import GeospatialAnalysis from "@pages/analytics/GeospatialAnalysis";
 import ExecutiveSummary from "@pages/analytics/ExecutiveSummary";
 import TemporalAnalysis from "@pages/analytics/TemporalAnalysis";
+import ExploratorySandbox from "@pages/analytics/ExploratorySandbox";
 import SimulationStudio from "@pages/simulation/SimulationStudio";
 import NetworkIntelligence from "@pages/simulation/NetworkIntelligence";
 import Settings from "@pages/system/Settings";
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="executive" element={<ExecutiveSummary />} />
               <Route path="geospatial" element={<GeospatialAnalysis />} />
               <Route path="temporal" element={<TemporalAnalysis />} />
+              <Route path="sandbox" element={<ExploratorySandbox />} />
               {/* Fallback for other analytics routes not yet implemented */}
               <Route path="*" element={<Navigate to="/analytics/executive" replace />} />
             </Route>

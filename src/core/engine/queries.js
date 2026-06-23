@@ -596,5 +596,57 @@ export const QUERIES = {
       MIN(created_datetime) as min_date,
       MAX(created_datetime) as max_date
     FROM violations
-  `
+  `,
+
+  // --- Exploratory Sandbox Queries ---
+  getExploratoryPivot: (xAxis, yAxis) => {
+    // Map human readable axis names to SQL expressions
+    const axisMap = {
+      'Vehicle Type': 'vehicle_type',
+      'Offence Code': 'violation_type',
+      'Police Station': 'police_station',
+      'Center Code': 'center_code'
+    };
+    
+    const xExpr = axisMap[xAxis];
+    const yExpr = axisMap[yAxis];
+
+    return `
+      WITH unnested_violations AS (
+        SELECT v.vehicle_type, CAST(v.center_code AS VARCHAR) as center_code, UNNEST(v.offence_code) as offence_code
+        FROM violations v
+      ),
+      base_data AS (
+        SELECT
+          u.vehicle_type,
+          u.center_code,
+          d_cen.police_station,
+          d_off.violation_type
+        FROM unnested_violations u
+        LEFT JOIN dim_center_code d_cen ON u.center_code = CAST(d_cen.center_code AS VARCHAR)
+        LEFT JOIN dim_offence_code d_off ON CAST(u.offence_code AS VARCHAR) = CAST(d_off.offence_code AS VARCHAR)
+      ),
+      filtered AS (
+        SELECT 
+          CAST(${xExpr} AS VARCHAR) as x_val, 
+          CAST(${yExpr} AS VARCHAR) as y_val
+        FROM base_data
+        WHERE ${xExpr} IS NOT NULL AND ${yExpr} IS NOT NULL 
+          AND CAST(${xExpr} AS VARCHAR) != '' AND CAST(${yExpr} AS VARCHAR) != ''
+      ),
+      pivoted AS (
+        PIVOT filtered ON x_val USING count(*) GROUP BY y_val
+      ),
+      totals AS (
+        SELECT y_val, count(*) as row_total
+        FROM filtered
+        GROUP BY y_val
+      )
+      SELECT p.*, t.row_total as "Total"
+      FROM pivoted p 
+      JOIN totals t ON p.y_val = t.y_val
+      ORDER BY t.row_total DESC
+    `;
+  }
 };
+
