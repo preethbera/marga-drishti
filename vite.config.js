@@ -15,6 +15,12 @@ export default defineConfig({
       "@lib": path.resolve(__dirname, "./src/lib"),
     },
   },
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "credentialless"
+    }
+  },
   optimizeDeps: {
     exclude: ['@duckdb/duckdb-wasm']
   }

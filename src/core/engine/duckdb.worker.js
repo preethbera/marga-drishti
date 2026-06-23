@@ -97,14 +97,19 @@ self.onmessage = async (e) => {
       
       const result = await conn.query(sql);
       
-      // Serialize the apache-arrow Table into an IPC format Uint8Array
-      const uint8Array = tableToIPC(result);
+      const parsed = {};
+      if (result && result.schema && result.schema.fields) {
+        result.schema.fields.forEach(field => {
+          const colName = field.name;
+          const column = result.getChild(colName);
+          if (column) {
+            parsed[colName] = column.toArray();
+          }
+        });
+      }
       
-      // Ensure we have a clean ArrayBuffer to transfer
-      const buffer = uint8Array.buffer.slice(uint8Array.byteOffset, uint8Array.byteOffset + uint8Array.byteLength);
-      
-      // Send the resulting buffer back as a Transferable Object
-      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } }, [buffer]);
+      // Send the resulting parsed object back directly
+      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer: parsed } });
     } catch (error) {
       console.error('Query error:', error);
       self.postMessage({ type: 'QUERY_ERROR', payload: { queryId, error: error.message } });
