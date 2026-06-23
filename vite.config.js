@@ -23,5 +23,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['@duckdb/duckdb-wasm']
+  },
+  esbuild: {
+    keepNames: true
   }
 })

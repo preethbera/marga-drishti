@@ -100,7 +100,8 @@ self.onmessage = async (e) => {
       // Serialize the Arrow Table to IPC buffer so it can be safely sent across postMessage
       const buffer = tableToIPC(result);
       
-      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } });
+      // Transfer the buffer for zero-copy memory efficiency
+      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } }, [buffer.buffer]);
     } catch (error) {
       console.error('Query error:', error);
       self.postMessage({ type: 'QUERY_ERROR', payload: { queryId, error: error.message } });
