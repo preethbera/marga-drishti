@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNetworkStore } from '@/store/useNetworkStore';
 import { BaseMap } from '@/components/ui/base-map';
 import { GeoJsonLayer } from '@deck.gl/layers';
-import { GEOSPATIAL_CONFIG } from '@/core/config/geospatial';
+import { GEOSPATIAL_CONFIG } from '@/core/config/map';
 
 const getLineWidth = (roadClass) => {
   switch (roadClass) {

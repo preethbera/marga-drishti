@@ -21,20 +21,33 @@ export const GEOSPATIAL_CONFIG = {
   },
 
   LAYERS: {
-    SCATTERPLOT: {
-      id: 'city-wide-aggregated',
-      radiusScale: 10,
-      radiusMinPixels: 15,
-      radiusMaxPixels: 60,
-      getColor: (count, maxCount) => {
-        // Heatmap color scale from blue to red based on count relative to maxCount
-        const ratio = Math.min(count / (maxCount || 1), 1);
-        return [
-          255 * ratio,
-          100,
-          255 * (1 - ratio),
-          200
-        ];
+    BUBBLES: {
+      id: 'city-wide-bubbles',
+      radiusUnits: 'pixels',
+      stroked: true,
+      getLineColor: [255, 255, 255, 180],
+      getLineWidth: 2,
+      lineWidthUnits: 'pixels',
+      calculateColor: (count, maxCount) => {
+        // Cyan -> Amber -> Red
+        const intensity = Math.min(count / (maxCount || 1), 1);
+        
+        let r, g, b;
+        if (intensity < 0.5) {
+          // Cyan (0, 255, 255) to Amber (255, 191, 0)
+          const normalized = intensity * 2;
+          r = Math.floor(0 + (255 - 0) * normalized);
+          g = Math.floor(255 - (64 * normalized)); // 255 to 191
+          b = Math.floor(255 - (255 * normalized)); // 255 to 0
+        } else {
+          // Amber (255, 191, 0) to Bright Red (255, 0, 0)
+          const normalized = (intensity - 0.5) * 2;
+          r = 255;
+          g = Math.floor(191 - (191 * normalized));
+          b = 0;
+        }
+        
+        return [r, g, b, 180];
       }
     },
     HEATMAP: {

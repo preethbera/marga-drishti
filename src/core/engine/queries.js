@@ -40,9 +40,15 @@ export const QUERIES = {
 
   // Get mappings for comboboxes
   getMappings: () => `
-    SELECT 'center' as type, CAST(center_code AS VARCHAR) as code, police_station as name FROM dim_center_code
+    SELECT 'center' as type, CAST(center_code AS VARCHAR) as code, police_station as name 
+    FROM dim_center_code
     UNION ALL
-    SELECT 'offence' as type, CAST(offence_code AS VARCHAR) as code, violation_type as name FROM dim_offence_code
+    SELECT 'offence' as type, CAST(offence_code AS VARCHAR) as code, violation_type as name
+    FROM dim_offence_code
+    UNION ALL
+    SELECT 'vehicle' as type, vehicle_type as code, vehicle_type as name
+    FROM violations
+    GROUP BY vehicle_type
   `,
 
   // --- GEOSPATIAL ANALYSIS QUERIES ---
@@ -114,17 +120,26 @@ export const QUERIES = {
         INNER JOIN center_totals ct ON v.center_code = ct.center_code
         ${whereClause}
         GROUP BY v.center_code, hour_val
+      ),
+      all_hours AS (
+        SELECT UNNEST(generate_series(0, 23)) as h
+      ),
+      fingerprints AS (
+        SELECT 
+          ct.center_code,
+          list(COALESCE(hc.hour_count, 0) ORDER BY ah.h ASC) as hourly_fingerprint
+        FROM center_totals ct
+        CROSS JOIN all_hours ah
+        LEFT JOIN hourly_counts hc ON hc.center_code = ct.center_code AND hc.hour_val = ah.h
+        GROUP BY ct.center_code
       )
       SELECT 
         ct.center_code as code,
         c.police_station as name,
         ct.total_count as count,
-        (
-          SELECT list(COALESCE(h.hour_count, 0) ORDER BY h2.h ASC)
-          FROM (SELECT UNNEST(generate_series(0, 23)) as h) h2
-          LEFT JOIN hourly_counts h ON h.center_code = ct.center_code AND h.hour_val = h2.h
-        ) as hourly_fingerprint
+        f.hourly_fingerprint
       FROM center_totals ct
+      JOIN fingerprints f ON ct.center_code = f.center_code
       LEFT JOIN dim_center_code c ON CAST(ct.center_code AS VARCHAR) = CAST(c.center_code AS VARCHAR)
       ORDER BY ct.total_count DESC
     `;
@@ -218,17 +233,26 @@ export const QUERIES = {
           v.hour_count
         FROM similarities s
         JOIN hourly_vectors v ON s.center_code = v.center_code
+      ),
+      all_hours AS (
+        SELECT UNNEST(generate_series(0, 23)) as h
+      ),
+      fingerprints AS (
+        SELECT 
+          s.center_code,
+          list(COALESCE(hc.hour_count, 0) ORDER BY ah.h ASC) as hourly_fingerprint
+        FROM similarities s
+        CROSS JOIN all_hours ah
+        LEFT JOIN similar_hourly_counts hc ON hc.center_code = s.center_code AND hc.hour_val = ah.h
+        GROUP BY s.center_code
       )
       SELECT 
         s.center_code as code,
         c.police_station as name,
         s.cosine_sim as similarity,
-        (
-          SELECT list(COALESCE(h.hour_count, 0) ORDER BY h2.h ASC)
-          FROM (SELECT UNNEST(generate_series(0, 23)) as h) h2
-          LEFT JOIN similar_hourly_counts h ON h.center_code = s.center_code AND h.hour_val = h2.h
-        ) as hourly_fingerprint
+        f.hourly_fingerprint
       FROM similarities s
+      JOIN fingerprints f ON s.center_code = f.center_code
       LEFT JOIN dim_center_code c ON CAST(s.center_code AS VARCHAR) = CAST(c.center_code AS VARCHAR)
       ORDER BY s.cosine_sim DESC
     `;

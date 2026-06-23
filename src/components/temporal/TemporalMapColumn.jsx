@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
-import { BaseMap } from '../ui/base-map';
-import { HexagonLayer, HeatmapLayer } from '@deck.gl/aggregation-layers';
-import { ScatterplotLayer } from '@deck.gl/layers';
-import { GEOSPATIAL_CONFIG } from '../../core/config/geospatial';
-import { Crosshair } from 'lucide-react';
+import AnalyticsMap from '../ui/analytics-map';
+import { GEOSPATIAL_CONFIG } from '../../core/config/map';
+import { Layers, Home } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function TemporalMapColumn({ 
   compareMode, 
   activeLayer, 
+  setActiveLayer,
   viewState, 
   onViewStateChange, 
   dataA, 
@@ -20,62 +20,6 @@ export default function TemporalMapColumn({
   const onResetCamera = () => {
     onViewStateChange(GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE);
   };
-
-  const createLayer = (data, windowId) => {
-    if (!data || data.length === 0) return null;
-    
-    const layerId = `${activeLayer.toLowerCase()}-${windowId}`;
-
-    switch (activeLayer) {
-      case 'Hexbins':
-        return new HexagonLayer({
-          ...GEOSPATIAL_CONFIG.LAYERS.HEXBINS,
-          id: layerId,
-          data,
-          getPosition: d => [d.longitude, d.latitude],
-          getElevationWeight: d => 1,
-          getColorWeight: d => 1,
-          pickable: true
-        });
-      
-      case 'Heatmap':
-        return new HeatmapLayer({
-          ...GEOSPATIAL_CONFIG.LAYERS.HEATMAP,
-          id: layerId,
-          data,
-          getPosition: d => [d.longitude, d.latitude],
-          getWeight: d => GEOSPATIAL_CONFIG.LAYERS.HEATMAP.getWeight(d.vehicle_type),
-          aggregation: 'SUM'
-        });
-        
-      case 'Points':
-        return new ScatterplotLayer({
-          ...GEOSPATIAL_CONFIG.LAYERS.POINTS,
-          id: layerId,
-          data,
-          getPosition: d => [d.longitude, d.latitude],
-          getRadius: 10,
-          pickable: true
-        });
-
-      case 'Impact':
-        return new HexagonLayer({
-          ...GEOSPATIAL_CONFIG.LAYERS.IMPACT,
-          id: layerId,
-          data,
-          getPosition: d => [d.longitude, d.latitude],
-          getElevationWeight: d => GEOSPATIAL_CONFIG.LAYERS.IMPACT.getWeight(d.hour),
-          getColorWeight: d => GEOSPATIAL_CONFIG.LAYERS.IMPACT.getWeight(d.hour),
-          pickable: true
-        });
-        
-      default:
-        return null;
-    }
-  };
-
-  const layersA = useMemo(() => [createLayer(dataA?.violations, 'a')].filter(Boolean), [activeLayer, dataA]);
-  const layersB = useMemo(() => [createLayer(dataB?.violations, 'b')].filter(Boolean), [activeLayer, dataB]);
 
   const renderOverlayBadge = (title, filters, kpis, isA) => {
     return (
@@ -137,25 +81,44 @@ export default function TemporalMapColumn({
 
   return (
     <div className="flex-1 flex flex-col w-full h-full relative border rounded-lg overflow-hidden bg-muted/20">
-      <Button 
-        variant="secondary" 
-        size="icon" 
-        className="absolute top-4 right-4 z-20 shadow-md bg-background/80 backdrop-blur"
-        onClick={onResetCamera}
-        title="Reset Camera"
-      >
-        <Crosshair className="w-4 h-4" />
-      </Button>
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <Select value={activeLayer} onValueChange={setActiveLayer}>
+          <SelectTrigger className="w-32 !h-9 bg-background hover:bg-background dark:bg-background dark:hover:bg-background border rounded-md shadow-sm font-semibold focus:ring-0 focus:ring-offset-0">
+            <div className="flex items-center">
+              <Layers className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+              <SelectValue placeholder="Layer" />
+            </div>
+          </SelectTrigger>
+          <SelectContent position="popper" side="bottom" sideOffset={4} alignItemWithTrigger={false} className="bg-background dark:bg-background">
+            <SelectItem value="Hexbins">3D Hex</SelectItem>
+            <SelectItem value="Heatmap">Heatmap</SelectItem>
+            <SelectItem value="Points">Points</SelectItem>
+            <SelectItem value="Impact">Impact</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
+          onClick={onResetCamera}
+          title="Home View"
+        >
+          <Home className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Single Map or Top Map (Window A) */}
       <div className="relative w-full flex-1">
-        <BaseMap 
-          layers={layersA} 
+        <AnalyticsMap 
+          className="w-full h-full relative"
+          layerConfigs={[{ id: `temporal-${activeLayer.toLowerCase()}-a`, type: activeLayer, data: dataA?.violations }]}
           viewState={viewState} 
           onViewStateChange={onViewStateChange}
-        />
-        {renderOverlayBadge(compareMode ? 'Window A' : 'Currently viewing', filtersA, dataA?.kpis, true)}
-        {!compareMode && renderLegend()}
+        >
+          {renderOverlayBadge(compareMode ? 'Window A' : 'Currently viewing', filtersA, dataA?.kpis, true)}
+          {!compareMode && renderLegend()}
+        </AnalyticsMap>
       </div>
 
       {/* Bottom Map (Window B) - Only in Compare Mode */}
@@ -163,13 +126,15 @@ export default function TemporalMapColumn({
         <>
           <div className="h-1.5 w-full bg-border shrink-0" />
           <div className="relative w-full flex-1 border-t-2 border-primary/50">
-            <BaseMap 
-              layers={layersB} 
+            <AnalyticsMap 
+              className="w-full h-full relative"
+              layerConfigs={[{ id: `temporal-${activeLayer.toLowerCase()}-b`, type: activeLayer, data: dataB?.violations }]}
               viewState={viewState} 
               onViewStateChange={onViewStateChange}
-            />
-            {renderOverlayBadge('Window B', filtersB, dataB?.kpis, false)}
-            {renderLegend()}
+            >
+              {renderOverlayBadge('Window B', filtersB, dataB?.kpis, false)}
+              {renderLegend()}
+            </AnalyticsMap>
           </div>
         </>
       )}

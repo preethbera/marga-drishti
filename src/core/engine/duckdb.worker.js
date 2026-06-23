@@ -97,19 +97,10 @@ self.onmessage = async (e) => {
       
       const result = await conn.query(sql);
       
-      const parsed = {};
-      if (result && result.schema && result.schema.fields) {
-        result.schema.fields.forEach(field => {
-          const colName = field.name;
-          const column = result.getChild(colName);
-          if (column) {
-            parsed[colName] = column.toArray();
-          }
-        });
-      }
+      // Serialize the Arrow Table to IPC buffer so it can be safely sent across postMessage
+      const buffer = tableToIPC(result);
       
-      // Send the resulting parsed object back directly
-      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer: parsed } });
+      self.postMessage({ type: 'QUERY_RESULT', payload: { queryId, buffer } });
     } catch (error) {
       console.error('Query error:', error);
       self.postMessage({ type: 'QUERY_ERROR', payload: { queryId, error: error.message } });

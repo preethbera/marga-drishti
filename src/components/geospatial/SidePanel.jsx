@@ -17,13 +17,13 @@ function Top10Mode({ onCenterSelect }) {
   }
 
   // To draw magnitude bar, we need the max count
-  const maxCount = Math.max(...top10.count);
+  const maxCount = Math.max(...Array.from(top10.count).map(Number));
 
   const rows = [];
   for (let i = 0; i < top10.code.length; i++) {
     const code = top10.code[i];
     const name = top10.name[i];
-    const count = top10.count[i];
+    const count = Number(top10.count[i]);
     const fp = top10.hourly_fingerprint[i]; // an array of 24 ints
 
     rows.push(
@@ -116,7 +116,7 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
   }
 
   // Stats
-  const total = drillDownStats.total_violations[0];
+  const total = Number(drillDownStats.total_violations[0]);
   const stationsCount = drillDownStats.police_stations_count[0];
   const peakHour = String(drillDownStats.peak_hour[0]).padStart(2, '0') + ':00';
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -135,7 +135,7 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
   // Profile array extraction
   let profileCounts = [];
   if (hourlyProfile && hourlyProfile.count) {
-    profileCounts = Array.from(hourlyProfile.count);
+    profileCounts = Array.from(hourlyProfile.count).map(Number);
   }
   const maxProfileCount = profileCounts.length > 0 ? Math.max(...profileCounts, 1) : 1;
 
@@ -263,7 +263,7 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
             </div>
             <div className="flex flex-col gap-2">
               {Array.from(vehicleMix.type).map((type, idx) => {
-                const count = vehicleMix.count[idx];
+                const count = Number(vehicleMix.count[idx]);
                 const pct = (count / total) * 100;
                 return (
                   <div key={type} className="flex items-center gap-3 text-sm">

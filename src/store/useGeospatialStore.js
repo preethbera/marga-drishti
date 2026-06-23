@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { executeQuery } from '../core/engine/queryClient';
 import { QUERIES } from '../core/engine/queries';
 import { parseArrowBuffer, parseArrowToTable } from '../core/arrow/arrowParsers';
-import { GEOSPATIAL_CONFIG } from '../core/config/geospatial';
+import { GEOSPATIAL_CONFIG } from '../core/config/map';
 
 export const useGeospatialStore = create((set, get) => ({
   filters: {
@@ -71,11 +71,13 @@ export const useGeospatialStore = create((set, get) => ({
 
       const centers = [{ code: 'all', name: 'All Centers' }];
       const offences = [{ code: 'all', name: 'All Offences' }];
+      const vehicles = [{ code: 'all', name: 'All Vehicles' }];
 
       for (let i = 0; i < parsed.type.length; i++) {
         const item = { code: parsed.code[i], name: parsed.name[i] };
         if (parsed.type[i] === 'center') centers.push(item);
-        if (parsed.type[i] === 'offence') offences.push(item);
+        else if (parsed.type[i] === 'offence') offences.push(item);
+        else if (parsed.type[i] === 'vehicle') vehicles.push(item);
       }
 
       set((state) => ({
@@ -84,7 +86,8 @@ export const useGeospatialStore = create((set, get) => ({
           mappings: {
             ...state.data.mappings,
             centers,
-            offences
+            offences,
+            vehicles
           }
         }
       }));
@@ -107,12 +110,18 @@ export const useGeospatialStore = create((set, get) => ({
           executeQuery(QUERIES.getGeoDetailedViolations(filters)) // Needed for heatmap
         ]);
 
+        const aggParsed = parseArrowBuffer(aggBuf);
+        if (aggParsed.latitude) aggParsed.length = aggParsed.latitude.length;
+
+        const detailedParsed = parseArrowBuffer(detailedBuf);
+        if (detailedParsed.latitude) detailedParsed.length = detailedParsed.latitude.length;
+
         set((state) => ({ 
           data: { 
             ...state.data, 
-            mapAggregated: parseArrowToTable(aggBuf),
-            top10: parseArrowToTable(top10Buf),
-            mapDetailed: parseArrowToTable(detailedBuf),
+            mapAggregated: aggParsed,
+            top10: parseArrowBuffer(top10Buf),
+            mapDetailed: detailedParsed,
             // Clear drill-down specific data
             drillDownStats: null,
             twins: null,
@@ -141,15 +150,18 @@ export const useGeospatialStore = create((set, get) => ({
           executeQuery(QUERIES.getGeoHourlyProfile(filters))
         ]);
 
+        const detailedParsed = parseArrowBuffer(detailedBuf);
+        if (detailedParsed.latitude) detailedParsed.length = detailedParsed.latitude.length;
+
         set((state) => ({ 
           data: { 
             ...state.data, 
-            mapDetailed: parseArrowToTable(detailedBuf),
-            drillDownStats: parseArrowToTable(statsBuf),
-            twins: parseArrowToTable(twinsBuf),
-            topOffences: parseArrowToTable(offencesBuf),
-            vehicleMix: parseArrowToTable(vehicleBuf),
-            hourlyProfile: parseArrowToTable(profileBuf),
+            mapDetailed: detailedParsed,
+            drillDownStats: parseArrowBuffer(statsBuf),
+            twins: parseArrowBuffer(twinsBuf),
+            topOffences: parseArrowBuffer(offencesBuf),
+            vehicleMix: parseArrowBuffer(vehicleBuf),
+            hourlyProfile: parseArrowBuffer(profileBuf),
             // Keep mapAggregated and top10 as they were before drill-down, 
             // or clear them if we don't need them in memory
             mapAggregated: null,

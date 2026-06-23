@@ -2,10 +2,14 @@ import React, { useEffect, useCallback } from 'react';
 import { useGeospatialStore } from '../../store/useGeospatialStore';
 import { useDataStore } from '../../store/useDataStore';
 import FilterBar from '../../components/geospatial/FilterBar';
-import MapVisualization from '../../components/geospatial/MapVisualization';
 import SidePanel from '../../components/geospatial/SidePanel';
-import { GEOSPATIAL_CONFIG } from '../../core/config/geospatial';
-import { Loader2 } from 'lucide-react';
+import GeospatialHeader from '../../components/geospatial/GeospatialHeader';
+import GeospatialInsightsRow from '../../components/geospatial/GeospatialInsightsRow';
+import AnalyticsMap from '../../components/ui/analytics-map';
+import { GEOSPATIAL_CONFIG } from '../../core/config/map';
+import { Loader2, Layers, MapPin, Activity, Home, ArrowLeft } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 
 export default function GeospatialAnalysis() {
   const { isEngineReady, error: dataError, syncMessage, initializeDataEngine } = useDataStore();
@@ -21,6 +25,8 @@ export default function GeospatialAnalysis() {
     fetchMappings, 
     fetchData 
   } = useGeospatialStore();
+
+  const [activeLayerMode, setActiveLayerMode] = React.useState('Hexbins'); // 'Hexbins', 'Bubbles', 'Heatmap'
 
   useEffect(() => {
     initializeDataEngine();
@@ -84,31 +90,108 @@ export default function GeospatialAnalysis() {
   const isDetailed = filters.centerCode !== 'all';
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] w-full m-0 p-0 overflow-hidden animate-in fade-in duration-500 relative bg-background">
-      <FilterBar 
-        filters={filters}
-        mappings={data.mappings}
-        onFilterChange={handleFilterChange}
-        onReset={handleReset}
-      />
-
-      <div className="flex-1 flex w-full min-h-0">
-        {/* Left Side: Map (~75%) */}
-        <div className="flex-[3] h-full relative">
-          <MapVisualization 
-            viewState={viewState}
-            onViewStateChange={setViewState}
-            isDetailed={isDetailed}
-            onCenterSelect={handleCenterSelect}
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] w-full overflow-y-auto custom-scrollbar animate-in fade-in duration-500 bg-background relative">
+      <div className="w-full flex flex-col gap-4 p-6 pb-8">
+        
+        {/* Full-width Top Headers */}
+        <GeospatialHeader />
+        
+        <div className="w-full shrink-0 rounded-lg overflow-hidden border bg-card shadow-sm">
+          <FilterBar 
+            filters={filters}
+            mappings={data.mappings}
+            onFilterChange={handleFilterChange}
+            onReset={handleReset}
           />
         </div>
-        
-        {/* Right Side: Panel (~25%) */}
-        <div className="flex-[1] h-full bg-card shadow-sm border-l z-10 min-w-[320px] max-w-[450px]">
-          <SidePanel 
-            onCenterSelect={handleCenterSelect}
-            onClearCenter={handleClearCenter}
+
+        <div className="w-full shrink-0">
+          <GeospatialInsightsRow 
+            filters={filters} 
+            mappings={data.mappings} 
           />
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-4 w-full h-[600px] xl:h-[700px] 2xl:h-[800px]">
+          {/* Left Side: Map */}
+          <div className="flex-1 flex w-full min-h-0 border rounded-lg overflow-hidden relative">
+            <AnalyticsMap 
+              viewState={viewState}
+              onViewStateChange={setViewState}
+              layerConfigs={[
+                {
+                  id: isDetailed ? `drill-${activeLayerMode}` : `city-${activeLayerMode}`,
+                  type: isDetailed && activeLayerMode === 'Bubbles' ? 'Points' : activeLayerMode,
+                  data: isDetailed ? data.mapDetailed : (activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed),
+                  overrides: {
+                    onClick: activeLayerMode === 'Bubbles' ? ({ index }) => {
+                      if (index !== -1 && data.mapAggregated && data.mapAggregated.code) {
+                        handleCenterSelect({ code: data.mapAggregated.code[index], name: data.mapAggregated.name[index] });
+                      }
+                    } : undefined
+                  },
+                  extras: {
+                    maxCount: activeLayerMode === 'Bubbles' && data.mapAggregated && data.mapAggregated.count
+                      ? Array.from(data.mapAggregated.count).reduce((max, c) => Math.max(max, Number(c)), 1)
+                      : 1,
+                    top10Data: !isDetailed && activeLayerMode === 'Hexbins' ? data.top10 : null
+                  }
+                }
+              ]}
+            >
+              <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                <Select value={activeLayerMode} onValueChange={setActiveLayerMode}>
+                  <SelectTrigger className="w-32 !h-9 bg-background hover:bg-background dark:bg-background dark:hover:bg-background border rounded-md shadow-sm font-semibold focus:ring-0 focus:ring-offset-0">
+                    <div className="flex items-center">
+                      <Layers className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                      <SelectValue placeholder="Layer" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent position="popper" side="bottom" sideOffset={4} alignItemWithTrigger={false} className="bg-background dark:bg-background">
+                    <SelectItem value="Hexbins">3D Hex</SelectItem>
+                    <SelectItem value="Bubbles">{isDetailed ? 'Points' : 'Bubbles'}</SelectItem>
+                    <SelectItem value="Heatmap">Heatmap</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
+                  onClick={() => setViewState(GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE)}
+                  title="Home View"
+                >
+                  <Home className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Drill-down overlay */}
+              {isDetailed && (
+                <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
+                  <button 
+                    onClick={handleClearCenter}
+                    className="pointer-events-auto bg-foreground text-background hover:bg-foreground/90 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors w-fit"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to city view
+                  </button>
+                  <div className="bg-card/90 backdrop-blur-md border rounded-md p-3 shadow-sm flex flex-col max-w-[250px]">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Drill-Down</span>
+                    <span className="font-bold text-base leading-tight truncate">
+                      {data.mappings.centers.find(c => String(c.code) === String(filters.centerCode))?.name || 'Centre'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </AnalyticsMap>
+          </div>
+          
+          {/* Right Side: Panel */}
+          <div className="w-full lg:w-[320px] xl:w-[450px] shrink-0 h-full bg-card shadow-sm border rounded-lg z-10 overflow-hidden">
+            <SidePanel 
+              onCenterSelect={handleCenterSelect}
+              onClearCenter={handleClearCenter}
+            />
+          </div>
         </div>
       </div>
 
