@@ -29,6 +29,25 @@ export function parseArrowBuffer(buffer) {
 }
 
 export function parseArrowToTable(buffer) {
+  // If buffer is already a parsed object (from the worker native extraction)
+  if (buffer && !(buffer instanceof ArrayBuffer) && !buffer.buffer && typeof buffer === 'object') {
+    const columns = Object.keys(buffer);
+    const numRows = columns.length > 0 && buffer[columns[0]] ? buffer[columns[0]].length : 0;
+    
+    return {
+      numRows,
+      schema: { fields: columns.map(name => ({ name })) },
+      getChild: (colName) => {
+        const colArray = buffer[colName];
+        if (!colArray) return null;
+        return {
+          get: (i) => colArray[i],
+          toArray: () => colArray
+        };
+      }
+    };
+  }
+
   // Returns the raw Apache Arrow Table without converting to JS objects
   return tableFromIPC(buffer);
 }

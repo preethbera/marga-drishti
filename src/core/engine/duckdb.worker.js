@@ -112,15 +112,21 @@ self.onmessage = async (e) => {
           const column = result.getChild(colName);
           if (column) {
             const arr = column.toArray();
-            // Only TypedArrays have a .buffer property. Regular arrays (like strings) do not.
+            // Only TypedArrays have a .buffer property.
             if (arr && arr.buffer instanceof ArrayBuffer) {
               // Clone the TypedArray so we don't accidentally transfer the entire WASM heap
               const typedArray = arr.slice();
               parsed[colName] = typedArray;
               transferList.push(typedArray.buffer);
             } else {
-              // For string arrays or nested types, just pass the array normally
-              parsed[colName] = arr;
+              // For nested types (like Structs or Lists), arrow returns Proxies or objects containing closure functions.
+              // We MUST deeply serialize them to pure JSON primitives to survive postMessage.
+              // We use a custom replacer to safely convert any nested BigInts to strings.
+              const cleanArray = column.toJSON ? column.toJSON() : arr;
+              const jsonString = JSON.stringify(cleanArray, (key, value) => 
+                typeof value === 'bigint' ? value.toString() : value
+              );
+              parsed[colName] = JSON.parse(jsonString);
             }
           }
         });
