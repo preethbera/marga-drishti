@@ -28,7 +28,7 @@ export default function KPIStrip({ stats, dateRange, mappings, isLoading }) {
   if (rawOffenceCode && mappings?.offences) {
     const matched = mappings.offences.find(m => m.code === String(rawOffenceCode));
     if (matched) {
-      topOffenceName = `${rawOffenceCode} — ${matched.name}`;
+      topOffenceName = `${rawOffenceCode} - ${matched.name}`;
     }
   }
   

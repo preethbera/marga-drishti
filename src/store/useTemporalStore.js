@@ -23,10 +23,34 @@ export const useTemporalStore = create((set, get) => ({
   dataB: { kpis: null, violations: [], vehicleMix: [] },
   weeklyHeatmapData: [],
   
+  datasetMinDate: null,
+  datasetMaxDate: null,
+  
   isLoadingA: false,
   isLoadingB: false,
   isLoadingHeatmap: false,
   error: null,
+
+  initializeDefaultRange: async () => {
+    try {
+      const buffer = await executeQuery(QUERIES.getExecutiveDateRange());
+      const data = parseArrowBuffer(buffer);
+      if (data.min_date && data.max_date && data.min_date.length > 0) {
+        const minDateStr = data.min_date[0];
+        const maxDateStr = data.max_date[0];
+        const toDate = new Date(maxDateStr);
+        const fromDate = new Date(minDateStr);
+        set((state) => ({ 
+          datasetMinDate: fromDate, 
+          datasetMaxDate: toDate,
+          filtersA: { ...state.filtersA, dateRange: { from: fromDate, to: toDate } },
+          filtersB: { ...state.filtersB, dateRange: { from: fromDate, to: toDate } }
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to init temporal date range:', error);
+    }
+  },
 
   setFiltersA: (newFilters) => {
     set((state) => ({ filtersA: { ...state.filtersA, ...newFilters } }));
@@ -85,13 +109,22 @@ export const useTemporalStore = create((set, get) => ({
   },
 
   fetchDataA: async () => {
-    const { filtersA } = get();
+    const { filtersA, datasetMinDate, datasetMaxDate } = get();
     set({ isLoadingA: true, error: null });
+    
+    const queryFilters = { ...filtersA };
+    if (filtersA.dateRange?.from && filtersA.dateRange?.to && datasetMinDate && datasetMaxDate) {
+      if (filtersA.dateRange.from.getTime() === datasetMinDate.getTime() && 
+          filtersA.dateRange.to.getTime() === datasetMaxDate.getTime()) {
+        queryFilters.dateRange = null;
+      }
+    }
+
     try {
       const [kpis, violations, mix] = await Promise.all([
-        executeQuery(QUERIES.getTemporalKPIs(filtersA)).then(parseArrowBuffer),
-        executeQuery(QUERIES.getTemporalViolations(filtersA)).then(parseArrowBuffer),
-        executeQuery(QUERIES.getTemporalVehicleMix(filtersA)).then(parseArrowBuffer)
+        executeQuery(QUERIES.getTemporalKPIs(queryFilters)).then(parseArrowBuffer),
+        executeQuery(QUERIES.getTemporalViolations(queryFilters)).then(parseArrowBuffer),
+        executeQuery(QUERIES.getTemporalVehicleMix(queryFilters)).then(parseArrowBuffer)
       ]);
       
       const kpisData = (kpis.violations_in_window && kpis.violations_in_window.length > 0) ? {
@@ -122,13 +155,22 @@ export const useTemporalStore = create((set, get) => ({
   },
 
   fetchDataB: async () => {
-    const { filtersB } = get();
+    const { filtersB, datasetMinDate, datasetMaxDate } = get();
     set({ isLoadingB: true, error: null });
+    
+    const queryFilters = { ...filtersB };
+    if (filtersB.dateRange?.from && filtersB.dateRange?.to && datasetMinDate && datasetMaxDate) {
+      if (filtersB.dateRange.from.getTime() === datasetMinDate.getTime() && 
+          filtersB.dateRange.to.getTime() === datasetMaxDate.getTime()) {
+        queryFilters.dateRange = null;
+      }
+    }
+
     try {
       const [kpis, violations, mix] = await Promise.all([
-        executeQuery(QUERIES.getTemporalKPIs(filtersB)).then(parseArrowBuffer),
-        executeQuery(QUERIES.getTemporalViolations(filtersB)).then(parseArrowBuffer),
-        executeQuery(QUERIES.getTemporalVehicleMix(filtersB)).then(parseArrowBuffer)
+        executeQuery(QUERIES.getTemporalKPIs(queryFilters)).then(parseArrowBuffer),
+        executeQuery(QUERIES.getTemporalViolations(queryFilters)).then(parseArrowBuffer),
+        executeQuery(QUERIES.getTemporalVehicleMix(queryFilters)).then(parseArrowBuffer)
       ]);
       
       const kpisData = (kpis.violations_in_window && kpis.violations_in_window.length > 0) ? {

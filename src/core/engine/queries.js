@@ -54,7 +54,7 @@ export const QUERIES = {
   // --- GEOSPATIAL ANALYSIS QUERIES ---
 
   getGeospatialBaseFilter: (filters, alias = 'v') => {
-    let conditions = [`${alias}.center_code != 91`];
+    let conditions = [`(${alias}.center_code != 91 OR ${alias}.center_code IS NULL)`];
     if (filters?.centerCode && filters.centerCode !== 'all') {
       conditions.push(`${alias}.center_code = ${filters.centerCode}`);
     }
@@ -323,10 +323,11 @@ export const QUERIES = {
   `,
 
   getExecutiveSummaryStats: (start, end) => {
+    const dateFilter = start && end ? `WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'` : '';
     return `
       WITH current_period AS (
         SELECT * FROM violations 
-        WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'
+        ${dateFilter}
       ),
       top_offence AS (
         SELECT code, count(*) as count 
@@ -370,55 +371,68 @@ export const QUERIES = {
     `;
   },
   
-  getDailyVolumeTrend: (start, end) => `
-    SELECT 
-      CAST(date_trunc('day', created_datetime) AS VARCHAR) as date,
-      count(*) as count
-    FROM violations
-    WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'
-    GROUP BY date
-    ORDER BY date ASC
-  `,
+  getDailyVolumeTrend: (start, end) => {
+    const dateFilter = start && end ? `WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'` : '';
+    return `
+      SELECT 
+        CAST(date_trunc('day', created_datetime) AS VARCHAR) as date,
+        count(*) as count
+      FROM violations
+      ${dateFilter}
+      GROUP BY date
+      HAVING date IS NOT NULL
+      ORDER BY date ASC
+    `;
+  },
 
-  getTopOffencesList: (start, end) => `
-    SELECT 
-      CAST(code AS VARCHAR) as code, 
-      count(*) as count
-    FROM (
-      SELECT UNNEST(offence_code) as code 
-      FROM violations 
-      WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'
-    )
-    GROUP BY code
-    ORDER BY count DESC
-    LIMIT 5
-  `,
+  getTopOffencesList: (start, end) => {
+    const dateFilter = start && end ? `WHERE created_datetime >= '${start}' AND created_datetime <= '${end}'` : '';
+    return `
+      SELECT 
+        CAST(code AS VARCHAR) as code, 
+        count(*) as count
+      FROM (
+        SELECT UNNEST(offence_code) as code 
+        FROM violations 
+        ${dateFilter}
+      )
+      GROUP BY code
+      ORDER BY count DESC
+      LIMIT 5
+    `;
+  },
 
-  getTopStationsList: (start, end) => `
-    SELECT 
-      CAST(center_code AS VARCHAR) as code, 
-      count(*) as count
-    FROM violations
-    WHERE created_datetime >= '${start}' AND created_datetime <= '${end}' AND center_code != 91
-    GROUP BY center_code
-    ORDER BY count DESC
-    LIMIT 5
-  `,
+  getTopStationsList: (start, end) => {
+    const dateFilter = start && end ? `WHERE created_datetime >= '${start}' AND created_datetime <= '${end}' AND center_code != 91` : 'WHERE center_code != 91';
+    return `
+      SELECT 
+        CAST(center_code AS VARCHAR) as code, 
+        count(*) as count
+      FROM violations
+      ${dateFilter}
+      GROUP BY center_code
+      ORDER BY count DESC
+      LIMIT 5
+    `;
+  },
 
-  getVehicleMix: (start, end) => `
-    SELECT 
-      vehicle_type as type,
-      count(*) as count
-    FROM violations
-    WHERE created_datetime >= '${start}' AND created_datetime <= '${end}' AND vehicle_type IS NOT NULL
-    GROUP BY vehicle_type
-    ORDER BY count DESC
-  `,
+  getVehicleMix: (start, end) => {
+    const dateFilter = start && end ? `WHERE created_datetime >= '${start}' AND created_datetime <= '${end}' AND vehicle_type IS NOT NULL` : 'WHERE vehicle_type IS NOT NULL';
+    return `
+      SELECT 
+        vehicle_type as type,
+        count(*) as count
+      FROM violations
+      ${dateFilter}
+      GROUP BY vehicle_type
+      ORDER BY count DESC
+    `;
+  },
 
   // Helper for temporal conditions
   _buildTemporalConditions: (filters) => {
     let conditions = [];
-    if (filters?.timeRange) {
+    if (filters?.timeRange && (filters.timeRange[0] !== 0 || filters.timeRange[1] !== 23)) {
       conditions.push(`extract('hour' from created_datetime) >= ${filters.timeRange[0]} AND extract('hour' from created_datetime) <= ${filters.timeRange[1]}`);
     }
     if (filters?.dayOfWeek && filters.dayOfWeek !== 'all') {
@@ -562,7 +576,7 @@ export const QUERIES = {
   getNetworkIntelligenceData: (filters) => {
     let dateCondition = "";
     if (filters?.startDate && filters?.endDate) {
-      dateCondition = `AND v.created_datetime >= '${filters.startDate}' AND v.created_datetime <= '${filters.endDate}'`;
+      dateCondition = `AND v.created_datetime >= '${filters.startDate}' AND v.created_datetime <= '${filters.endDate} 23:59:59'`;
     }
 
     return `
@@ -629,18 +643,22 @@ export const QUERIES = {
       ),
       filtered AS (
         SELECT 
-          CAST(${xExpr} AS VARCHAR) as x_val, 
-          CAST(${yExpr} AS VARCHAR) as y_val
+          COALESCE(CAST(${xExpr} AS VARCHAR), 'Unknown') as x_val, 
+          COALESCE(CAST(${yExpr} AS VARCHAR), 'Unknown') as y_val
         FROM base_data
-        WHERE ${xExpr} IS NOT NULL AND ${yExpr} IS NOT NULL 
-          AND CAST(${xExpr} AS VARCHAR) != '' AND CAST(${yExpr} AS VARCHAR) != ''
+      ),
+      clean_filtered AS (
+        SELECT 
+          CASE WHEN x_val = '' THEN 'Unknown' ELSE x_val END as x_val,
+          CASE WHEN y_val = '' THEN 'Unknown' ELSE y_val END as y_val
+        FROM filtered
       ),
       pivoted AS (
-        PIVOT filtered ON x_val USING count(*) GROUP BY y_val
+        PIVOT clean_filtered ON x_val USING count(*) GROUP BY y_val
       ),
       totals AS (
         SELECT y_val, count(*) as row_total
-        FROM filtered
+        FROM clean_filtered
         GROUP BY y_val
       )
       SELECT p.*, t.row_total as "Total"

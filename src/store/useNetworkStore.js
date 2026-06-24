@@ -87,8 +87,12 @@ export const useNetworkStore = create((set, get) => ({
         });
       }
 
-      const { startDate, endDate } = get();
-      const sql = QUERIES.getNetworkIntelligenceData({ startDate, endDate });
+      const { startDate, endDate, defaultStartDate, defaultEndDate } = get();
+      const isDefault = startDate === defaultStartDate && endDate === defaultEndDate;
+      const sql = QUERIES.getNetworkIntelligenceData({ 
+        startDate: isDefault ? null : startDate, 
+        endDate: isDefault ? null : endDate 
+      });
       const buffer = await executeQuery(sql);
       const parsedData = parseArrowBuffer(buffer);
       

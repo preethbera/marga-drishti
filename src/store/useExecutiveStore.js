@@ -6,6 +6,7 @@ import { format, subDays, differenceInDays } from 'date-fns';
 
 export const useExecutiveStore = create((set, get) => ({
   dateRange: { from: null, to: null },
+  datasetMinDate: null,
   datasetMaxDate: null,
   isLoading: false,
   error: null,
@@ -46,13 +47,13 @@ export const useExecutiveStore = create((set, get) => ({
         const toDate = new Date(maxDateStr);
         const fromDate = new Date(minDateStr);
         
-        set({ datasetMaxDate: toDate });
+        set({ datasetMinDate: fromDate, datasetMaxDate: toDate });
         get().setDateRange({ from: fromDate, to: toDate });
       } else {
         // Fallback
         const toDate = new Date();
         const fromDate = subDays(toDate, 30);
-        set({ datasetMaxDate: toDate });
+        set({ datasetMinDate: fromDate, datasetMaxDate: toDate });
         get().setDateRange({ from: fromDate, to: toDate });
       }
     } catch (error) {
@@ -63,8 +64,15 @@ export const useExecutiveStore = create((set, get) => ({
   fetchSummaryData: async (from, to) => {
     set({ isLoading: true, error: null });
     try {
-      const startStr = format(from, 'yyyy-MM-dd');
-      const endStr = format(to, 'yyyy-MM-dd 23:59:59');
+      const minDate = get().datasetMinDate;
+      const maxDate = get().datasetMaxDate;
+      
+      const isDefaultRange = minDate && maxDate && 
+        from.getTime() === minDate.getTime() && 
+        to.getTime() === maxDate.getTime();
+
+      const startStr = isDefaultRange ? null : format(from, 'yyyy-MM-dd');
+      const endStr = isDefaultRange ? null : format(to, 'yyyy-MM-dd 23:59:59');
 
       const [
         statsBuffer,

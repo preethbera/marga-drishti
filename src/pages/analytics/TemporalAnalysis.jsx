@@ -18,7 +18,7 @@ export default function TemporalAnalysis() {
     filtersA, filtersB, compareMode, activeLayer, playbackState, viewState,
     dataA, dataB, weeklyHeatmapData, isLoadingA, isLoadingB,
     setFiltersA, setFiltersB, setCompareMode, setActiveLayer, setViewState,
-    togglePlayback, resetPlayback, fetchDataA, fetchWeeklyHeatmap
+    togglePlayback, resetPlayback, fetchDataA, fetchWeeklyHeatmap, initializeDefaultRange
   } = useTemporalStore();
 
   // Engine Init
@@ -91,8 +91,15 @@ export default function TemporalAnalysis() {
   // Initial Data Fetch
   useEffect(() => {
     if (isEngineReady) {
-      fetchDataA();
-      fetchWeeklyHeatmap();
+      if (!filtersA.dateRange?.from) {
+        initializeDefaultRange().then(() => {
+          fetchDataA();
+          fetchWeeklyHeatmap();
+        });
+      } else {
+        fetchDataA();
+        fetchWeeklyHeatmap();
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEngineReady]);
