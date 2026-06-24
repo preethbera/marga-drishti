@@ -255,37 +255,3 @@
     print-color-adjust: exact !important;
   }
 }
-
-/* ===== KaTeX Overrides =====
- * Tailwind's Preflight applies `border: 0 solid` and a global font-family
- * reset to every element (*). This strips KaTeX of its math fonts (needed
- * for symbols like ×, ≥, ∑) and its ability to draw fraction lines and
- * radical signs via CSS borders. The rules below scope those resets out
- * of all .katex containers.
- */
-.katex,
-.katex * {
-  border-style: initial;
-  border-width: initial;
-  border-color: initial;
-  font-family: KaTeX_Main, KaTeX_Math, KaTeX_AMS, KaTeX_Caligraphic,
-    KaTeX_Fraktur, KaTeX_SansSerif, KaTeX_Script, KaTeX_Size1, KaTeX_Size2,
-    KaTeX_Size3, KaTeX_Size4, KaTeX_Typewriter, serif !important;
-}
-
-.katex .katex-html {
-  white-space: nowrap;
-}
-
-.katex .frac-line {
-  border-bottom-style: solid !important;
-}
-
-.katex .overline .overline-line,
-.katex .underline .underline-line {
-  border-bottom-style: solid !important;
-}
-
-.katex .sqrt > .root {
-  display: inline-block;
-}

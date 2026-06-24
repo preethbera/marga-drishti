@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 
 export default function RoadCrossSection() {
   const { roadWidth, parkedPCU, results } = useSimulationStore();

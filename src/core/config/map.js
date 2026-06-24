@@ -1,6 +1,11 @@
 import { FlyToInterpolator } from '@deck.gl/core';
 
 export const GEOSPATIAL_CONFIG = {
+  MAP_STYLES: {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+  },
   MAP_STYLE: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   
   INITIAL_VIEW_STATE: {

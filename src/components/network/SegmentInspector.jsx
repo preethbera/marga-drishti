@@ -3,7 +3,7 @@ import { useNetworkStore } from '@/store/useNetworkStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { runSimulation, calculateEffectiveWidth } from '@/core/engine/simulation';
-import { InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid } from 'recharts';
 
 const getDisplayClass = (rc) => {
@@ -90,14 +90,14 @@ export default function SegmentInspector() {
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               Base Capacity
             </span>
-            <span className="text-xs text-muted-foreground">(<InlineMath math="K_{j,base}" />)</span>
+            <span className="text-xs text-muted-foreground">(<Latex>{String.raw`$K_{j,base}$`}</Latex>)</span>
             <span className="font-mono">{Math.round(stats.K_j_base)} veh/km</span>
           </div>
           <div className="flex flex-col gap-1 border-l-2 pl-3">
             <span className="text-xs text-muted-foreground">
               Effective Jam Density
             </span>
-            <span className="text-xs text-muted-foreground">(<InlineMath math="K_{j,eff}" />)</span>
+            <span className="text-xs text-muted-foreground">(<Latex>{String.raw`$K_{j,eff}$`}</Latex>)</span>
             <span className="font-mono text-primary">{Math.round(stats.K_j_eff)} veh/km</span>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function SegmentInspector() {
         {/* Reference Density Slider */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Reference Density (<InlineMath math="K" />)</span>
+            <span className="text-sm font-medium">Reference Density (<Latex>{String.raw`$K$`}</Latex>)</span>
             <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{currentK} veh/km</span>
           </div>
           <Slider
@@ -128,7 +128,7 @@ export default function SegmentInspector() {
 
         {/* Speed Result */}
         <div className="bg-card border rounded-lg p-4 flex items-center justify-between">
-          <span className="text-sm font-medium">Predicted Speed (<InlineMath math="V" />)</span>
+          <span className="text-sm font-medium">Predicted Speed (<Latex>{String.raw`$V$`}</Latex>)</span>
           {isGridlock ? (
             <div className={`text-lg font-bold text-chart-5`}>GRIDLOCK</div>
           ) : (

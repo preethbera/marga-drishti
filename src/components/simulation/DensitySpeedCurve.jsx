@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { CustomChartTooltip } from '@/components/ui/recharts-tooltip';
 import { useSimulationStore } from '@/store/useSimulationStore';
 import { calculatePredictedSpeed, calculateEffectiveJamDensity, calculateEffectiveWidth, V_F, V_O } from '@/core/engine/simulation';
-import { InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 

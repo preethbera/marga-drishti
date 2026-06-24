@@ -23,10 +23,10 @@ const getDisplayClass = (rc) => {
 };
 
 const getColorFromLoss = (lossPercent) => {
-  if (lossPercent >= 100) return [239, 68, 68, 255]; // Gridlock (Red)
-  if (lossPercent >= 50) return [249, 115, 22, 255]; // Critical (Orange)
-  if (lossPercent >= 20) return [234, 179, 8, 255];  // Marginal (Yellow)
-  return [34, 197, 94, 255]; // Safe (Green)
+  if (lossPercent >= 100) return [220, 38, 38, 255]; // Gridlock (Red-600)
+  if (lossPercent >= 50) return [234, 88, 12, 255];  // Critical (Orange-600)
+  if (lossPercent >= 20) return [202, 138, 4, 255];  // Marginal (Yellow-600)
+  return [5, 150, 105, 255]; // Safe (Emerald-600)
 };
 
 export default function CapacityMap() {
@@ -67,7 +67,7 @@ export default function CapacityMap() {
         lineWidthMinPixels: 2,
         getLineColor: d => {
           if (selectedSegmentId && d.properties.id === selectedSegmentId) {
-            return [56, 189, 248, 255]; // Highlight selected (Sky Blue)
+            return [37, 99, 235, 255]; // Highlight selected (Blue-600)
           }
           return getColorFromLoss(d.properties.capacityLoss);
         },
@@ -129,19 +129,19 @@ export default function CapacityMap() {
         <h4 className="font-semibold mb-2">Capacity Reduction</h4>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-green-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-emerald-600"></div>
             <span>Safe (0 - 20%)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-yellow-600"></div>
             <span>Marginal (20 - 50%)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-orange-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-orange-600"></div>
             <span>Critical (50 - 100%)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-red-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-red-600"></div>
             <span>Gridlock (100%)</span>
           </div>
         </div>

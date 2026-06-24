@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 
 export default function SpeedLossAttribution() {
   const { results } = useSimulationStore();
@@ -23,7 +23,7 @@ export default function SpeedLossAttribution() {
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
             <span>0</span>
-            <span><InlineMath math="V_F = 67" /> km/h</span>
+            <span><Latex>{String.raw`$V_F = 67$`}</Latex> km/h</span>
           </div>
           <div className="h-8 w-full flex rounded-md overflow-hidden bg-secondary">
             {pActual > 0 && (
@@ -72,7 +72,7 @@ export default function SpeedLossAttribution() {
           <table className="w-full text-sm text-left">
             <tbody>
               <tr className="border-b border-sidebar-border/50">
-                <td className="p-2 text-muted-foreground">Free-Flow Speed <InlineMath math="(V_F)" /></td>
+                <td className="p-2 text-muted-foreground">Free-Flow Speed <Latex>{String.raw`$(V_F)$`}</Latex></td>
                 <td className="p-2 text-right font-mono">{vFreeFlow.toFixed(1)}</td>
               </tr>
               <tr className="border-b border-sidebar-border/50 bg-slate-500/10">
@@ -88,7 +88,7 @@ export default function SpeedLossAttribution() {
                 <td className="p-2 text-right font-mono text-red-400">-{parkingLoss.toFixed(1)}</td>
               </tr>
               <tr className="font-bold bg-muted/50">
-                <td className="p-2">Actual Predicted Speed <InlineMath math="(V)" /></td>
+                <td className="p-2">Actual Predicted Speed <Latex>{String.raw`$(V)$`}</Latex></td>
                 <td className="p-2 text-right font-mono text-green-500">{vActual.toFixed(1)}</td>
               </tr>
             </tbody>

@@ -23,7 +23,7 @@ import {
   V_F,
   V_O,
 } from "@/core/engine/simulation";
-import { InlineMath } from "react-katex";
+import Latex from "react-latex-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
@@ -75,7 +75,7 @@ export default function SensitivitySweep() {
             Sensitivity Sweep: Speed vs. Parked PCU
           </CardTitle>
           <span className="text-sm text-muted-foreground">
-            Reference <InlineMath math="K" />:{" "}
+            Reference <Latex>{String.raw`$K$`}</Latex>:{" "}
             <span className="font-mono">{trafficDensity.toFixed(1)}</span>{" "}
             veh/km
           </span>

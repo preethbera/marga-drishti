@@ -107,7 +107,6 @@ export default function AnalyticsMap({
         viewState={viewState} 
         onViewStateChange={onViewStateChange}
         getTooltip={getMapTooltip}
-        mapStyle={GEOSPATIAL_CONFIG.MAP_STYLE}
       >
         {children}
       </BaseMap>

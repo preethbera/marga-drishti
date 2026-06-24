@@ -1,5 +1,14 @@
 import React from "react";
-import { BlockMath, InlineMath } from "react-katex";
+import katex from 'katex';
+
+const MathEq = ({ math, displayMode = false }) => {
+  try {
+    const html = katex.renderToString(math, { throwOnError: false, displayMode });
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  } catch (e) {
+    return <span>{math}</span>;
+  }
+};
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, ArrowDown } from "lucide-react";
 import DocsLayout from "@/layouts/DocsLayout";
@@ -73,12 +82,12 @@ export default function SimulationModel() {
           To ensure accuracy, the model distinguishes between baseline constants and dynamic parameters.
         </p>
         <ul className="list-disc list-outside ml-6 space-y-2 text-base text-foreground/90 leading-7">
-          <li><strong>Free-Flow Speed (<InlineMath math="U_f" />):</strong> The speed of a vehicle when there is zero traffic or obstruction. Set at 67 km/h based on empirical calibration.</li>
-          <li><strong>Optimum Speed (<InlineMath math="V_o" />):</strong> The speed at which the road processes the absolute maximum volume of traffic.</li>
-          <li><strong>Base Jam Density (<InlineMath math="K_{j, base}" />):</strong> The maximum number of vehicles that can physically fit into a kilometer of a standard unobstructed road.</li>
-          <li><strong>Jam Density per Meter (<InlineMath math="K_{j, meter}" />):</strong> A derived constant defining how many jammed vehicles fit per longitudinal meter of asphalt width.</li>
-          <li><strong>Effective Usable Width (<InlineMath math="W_{eff}" />):</strong> The remaining drivable width of the road after subtracting parked vehicles.</li>
-          <li><strong>Effective Jam Density (<InlineMath math="K_{j,eff}" />):</strong> The dynamic capacity limit of the road under current parking conditions.</li>
+          <li><strong>Free-Flow Speed (<MathEq math={String.raw`U_f`} />):</strong> The speed of a vehicle when there is zero traffic or obstruction. Set at 67 km/h based on empirical calibration.</li>
+          <li><strong>Optimum Speed (<MathEq math={String.raw`V_o`} />):</strong> The speed at which the road processes the absolute maximum volume of traffic.</li>
+          <li><strong>Base Jam Density (<MathEq math={String.raw`K_{j, base}`} />):</strong> The maximum number of vehicles that can physically fit into a kilometer of a standard unobstructed road.</li>
+          <li><strong>Jam Density per Meter (<MathEq math={String.raw`K_{j, meter}`} />):</strong> A derived constant defining how many jammed vehicles fit per longitudinal meter of asphalt width.</li>
+          <li><strong>Effective Usable Width (<MathEq math={String.raw`W_{eff}`} />):</strong> The remaining drivable width of the road after subtracting parked vehicles.</li>
+          <li><strong>Effective Jam Density (<MathEq math={String.raw`K_{j,eff}`} />):</strong> The dynamic capacity limit of the road under current parking conditions.</li>
         </ul>
       </section>
 
@@ -88,7 +97,7 @@ export default function SimulationModel() {
           The system constants are anchored in empirical field data from a comprehensive study of mixed-traffic urban corridors [1].
         </p>
         <ul className="list-disc list-outside ml-6 space-y-2 text-base text-foreground/90 leading-7">
-          <li><strong>Free-Flow Speed (66.99 km/h):</strong> Calibrated from field observations where the Greenberg model demonstrated the strongest statistical fit (<InlineMath math="R^2 = 0.695" />) [1]. For simulation simplicity, this is rounded to 67 km/h.</li>
+          <li><strong>Free-Flow Speed (66.99 km/h):</strong> Calibrated from field observations where the Greenberg model demonstrated the strongest statistical fit (<MathEq math={String.raw`R^2 = 0.695`} />) [1]. For simulation simplicity, this is rounded to 67 km/h.</li>
           <li><strong>Optimum Speed (33.5 km/h):</strong> Derived from the standard macroscopic assumption that maximum flow occurs at exactly half the free-flow speed [1].</li>
           <li><strong>Jam Density per Meter (10.86 veh/km/m):</strong> The research established a baseline jam density of 78.24 veh/km for a standard two-lane urban highway [1]. Assuming a standard width of 7.2 meters (two 3.6-meter lanes), dividing 78.24 by 7.2 yields exactly 10.86 vehicles per kilometer for every meter of road width.</li>
           <li><strong>PCU Physical Width (3.0 meters):</strong> A standard scalar equating 1.0 Passenger Car Unit to the approximate lateral space a parked car occupies, including the door-opening buffer zone.</li>
@@ -161,14 +170,14 @@ export default function SimulationModel() {
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <div className="text-center py-4 overflow-x-auto text-lg">
-                  <BlockMath math={"W_{eff} = W_{total} - (PCU_{parked} \\times 3.0)"} />
+                  <MathEq math={String.raw`W_{eff} = W_{total} - (PCU_{parked} \times 3.0)`} displayMode={true} />
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mt-4">
-                  <li><strong><InlineMath math="W_{eff}" /></strong>: Effective usable width (meters).</li>
-                  <li><strong><InlineMath math="W_{total}" /></strong>: Total physical width of the road (meters).</li>
-                  <li><strong><InlineMath math="PCU_{parked}" /></strong>: The PCU value of the parked obstruction.</li>
-                  <li><strong>Physical Meaning:</strong> This reduces the road's lateral space based on the size of the parked vehicle.</li>
-                  <li><strong>System Constraint:</strong> <InlineMath math="W_{eff}" /> is programmatically clamped to a minimum of 1.0 meter to prevent mathematical errors in the subsequent steps if a road is completely blocked.</li>
+                  <li><strong><MathEq math={String.raw`W_{eff}`} /></strong>: Effective usable width (meters).</li>
+                  <li><strong><MathEq math={String.raw`W_{total}`} /></strong>: Total physical width of the road (meters).</li>
+                  <li><strong><MathEq math={String.raw`PCU_{parked}`} /></strong>: The PCU value of the parked obstruction.</li>
+                  <li><strong>Interpretation:</strong> Each parked PCU unit essentially nullifies 3.0 meters of physical road width, representing both the physical space taken by the vehicle and the psychological buffer space avoided by moving drivers.</li>
+                  <li><strong>System Constraint:</strong> <MathEq math={String.raw`W_{eff}`} /> is programmatically clamped to a minimum of 1.0 meter to prevent mathematical errors in the subsequent steps if a road is completely blocked.</li>
                 </ul>
               </CardContent>
             </Card>
@@ -183,10 +192,10 @@ export default function SimulationModel() {
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <div className="text-center py-4 overflow-x-auto text-lg">
-                  <BlockMath math={"K_{j,eff} = W_{eff} \\times 10.86"} />
+                  <MathEq math={String.raw`K_{j,eff} = W_{eff} \times 10.86`} displayMode={true} />
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mt-4">
-                  <li><strong><InlineMath math="K_{j,eff}" /></strong>: Effective jam density (veh/km).</li>
+                  <li><strong><MathEq math={String.raw`K_{j,eff}`} /></strong>: Effective jam density (veh/km).</li>
                   <li><strong>10.86</strong>: The derived jam density per meter constant.</li>
                   <li><strong>Physical Meaning:</strong> A narrower road physically holds fewer vehicles before coming to a complete standstill. This translates the physical blockage into a traffic flow parameter.</li>
                 </ul>
@@ -203,14 +212,14 @@ export default function SimulationModel() {
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <div className="text-center py-4 overflow-x-auto text-lg">
-                  <BlockMath math={"V = V_o \\times \\ln\\left(\\frac{K_{j,eff}}{K}\\right)"} />
+                  <MathEq math={String.raw`V = V_o \times \ln\left(\frac{K_{j,eff}}{K}\right)`} displayMode={true} />
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mt-4">
-                  <li><strong><InlineMath math="V" /></strong>: Predicted average vehicle speed (km/h).</li>
-                  <li><strong><InlineMath math="V_o" /></strong>: Optimum speed (33.5 km/h).</li>
-                  <li><strong><InlineMath math="K" /></strong>: Current active traffic density (veh/km).</li>
-                  <li><strong>Interpretation:</strong> The natural logarithm ensures that as the current density (<InlineMath math="K" />) approaches the absolute limit (<InlineMath math="K_{j,eff}" />), the speed decays rapidly toward zero, perfectly mimicking urban gridlock.</li>
-                  <li><strong>System Constraint:</strong> If <InlineMath math={"K \\ge K_{j,eff}"} />, the formula evaluates to zero or a negative number. The simulation catches this and forces <InlineMath math="V = 0" />, indicating total gridlock.</li>
+                  <li><strong><MathEq math={String.raw`V`} /></strong>: Predicted average vehicle speed (km/h).</li>
+                  <li><strong><MathEq math={String.raw`V_o`} /></strong>: Optimum speed (33.5 km/h).</li>
+                  <li><strong><MathEq math={String.raw`K`} /></strong>: Current active traffic density (veh/km).</li>
+                  <li><strong>Interpretation:</strong> The natural logarithm ensures that as the current density (<MathEq math={String.raw`K`} />) approaches the absolute limit (<MathEq math={String.raw`K_{j,eff}`} />), the speed decays rapidly toward zero, perfectly mimicking urban gridlock.</li>
+                  <li><strong>System Constraint:</strong> If <MathEq math={String.raw`K \ge K_{j,eff}`} />, the formula evaluates to zero or a negative number. The simulation catches this and forces <MathEq math={String.raw`V = 0`} />, indicating total gridlock.</li>
                 </ul>
               </CardContent>
             </Card>
@@ -222,7 +231,7 @@ export default function SimulationModel() {
       <section id="interpretation" className="scroll-mt-8">
         <h2 className="text-2xl font-bold tracking-tight border-b pb-2 mb-4">Interpretation of Results</h2>
         <p className="text-base text-foreground/90 leading-7 mb-4">
-          The primary output is the <strong>Predicted Speed (<InlineMath math="V" />)</strong>.
+          The primary output is the <strong>Predicted Speed (<MathEq math={String.raw`V`} />)</strong>.
         </p>
         <ul className="list-disc list-outside ml-6 space-y-2 text-base text-foreground/90 leading-7 mb-4">
           <li>Speeds near 33.5 km/h indicate optimal, smooth flow.</li>
@@ -239,7 +248,7 @@ export default function SimulationModel() {
         <ul className="list-disc list-outside ml-6 space-y-2 text-base text-foreground/90 leading-7">
           <li><strong>Pedestrian Friction is Excluded:</strong> The model strictly isolates the impact of parked vehicles. Real-world speeds may be lower if heavy pedestrian flow is present.</li>
           <li><strong>Linear Blockage Assumption:</strong> The model assumes parked vehicles cause a static, linear reduction in width. It does not account for the dynamic shockwaves caused by the exact moment a vehicle pulls into or out of a parking space.</li>
-          <li><strong>Homogeneous Distribution:</strong> It assumes moving traffic fluidly utilizes the remaining <InlineMath math="W_{eff}" /> space without lane-switching delays.</li>
+          <li><strong>Homogeneous Distribution:</strong> It assumes moving traffic fluidly utilizes the remaining <MathEq math={String.raw`W_{eff}`} /> space without lane-switching delays.</li>
         </ul>
       </section>
 

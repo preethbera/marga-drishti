@@ -1,6 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BlockMath, InlineMath } from "react-katex";
+import katex from 'katex';
+
+const MathEq = ({ math, displayMode = false }) => {
+  try {
+    const html = katex.renderToString(math, { throwOnError: false, displayMode });
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  } catch (e) {
+    return <span>{math}</span>;
+  }
+};
 import { Card, CardContent } from "@/components/ui/card";
 import { Map, GitBranch, Clock, ExternalLink } from "lucide-react";
 import DocsLayout from "@/layouts/DocsLayout";
@@ -50,10 +59,10 @@ export default function AggregationMethodology() {
               <CardContent className="p-6">
                 <p className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Shannon Entropy Formula</p>
                 <div className="text-center py-4 overflow-x-auto text-lg">
-                  <BlockMath math={"H = \\sum \\left( -p_i \\cdot \\log_2(p_i) \\right)"} />
+                  <MathEq math={String.raw`H = \sum \left( -p_i \cdot \log_2(p_i) \right)`} displayMode={true} />
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
-                  Where <InlineMath math="p_i" /> is the proportion of total violations occurring in the <InlineMath math="i" />-th hour bin.
+                  Where <MathEq math={String.raw`p_i`} /> is the proportion of total violations occurring in the <MathEq math={String.raw`i`} />-th hour bin.
                 </p>
               </CardContent>
             </Card>

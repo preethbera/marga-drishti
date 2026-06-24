@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 
 export default function GridlockGauge() {
   const { trafficDensity, results } = useSimulationStore();
@@ -78,11 +78,11 @@ export default function GridlockGauge() {
 
         <div className="w-full mt-4 space-y-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Current <InlineMath math="K" /></span>
+            <span className="text-muted-foreground">Current <Latex>{String.raw`$K$`}</Latex></span>
             <span className="font-mono">{trafficDensity.toFixed(1)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Jam <InlineMath math="K_{j,eff}" /></span>
+            <span className="text-muted-foreground">Jam <Latex>{String.raw`$K_{j,eff}$`}</Latex></span>
             <span className="font-mono">{K_j_eff.toFixed(1)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">

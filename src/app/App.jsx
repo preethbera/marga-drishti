@@ -16,7 +16,7 @@ import AggregationMethodology from "@pages/docs/AggregationMethodology";
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="clearway-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="clearway-ui-theme">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>

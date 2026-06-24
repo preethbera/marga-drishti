@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Info } from 'lucide-react';
 import { useSimulationStore } from '@/store/useSimulationStore';
-import { BlockMath, InlineMath } from 'react-katex';
+import Latex from "react-latex-next";
 
 export default function ControlPanel() {
   const { 
@@ -59,7 +59,7 @@ export default function ControlPanel() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <Label className="flex items-center gap-2">
-                Road Width <InlineMath math="(W_{total})" />
+                Road Width <Latex>{String.raw`$(W_{total})$`}</Latex>
               </Label>
               <div className="flex items-center gap-2 w-24">
                 <Input 
@@ -88,7 +88,7 @@ export default function ControlPanel() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <Label className="flex items-center gap-2">
-                Parked Blockage <InlineMath math="(PCU_{parked})" />
+                Parked Blockage <Latex>{String.raw`$(PCU_{parked})$`}</Latex>
               </Label>
               <div className="flex items-center gap-2 w-24">
                 <Input 
@@ -120,7 +120,7 @@ export default function ControlPanel() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <Label className="flex items-center gap-2">
-                Traffic Density <InlineMath math="(K)" />
+                Traffic Density <Latex>{String.raw`$(K)$`}</Latex>
               </Label>
               <div className="flex items-center gap-2 w-24">
                 <Input 
@@ -152,7 +152,7 @@ export default function ControlPanel() {
             <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
             <AlertTitle className="text-2xl font-bold text-red-500">System Gridlock</AlertTitle>
             <AlertDescription className="text-center text-red-200 mt-2 max-w-sm">
-              The combination of traffic density and parked vehicles has exceeded the physical capacity of the road. Flow is completely halted (<InlineMath math="V = 0" />).
+              The combination of traffic density and parked vehicles has exceeded the physical capacity of the road. Flow is completely halted (<Latex>{String.raw`$V = 0$`}</Latex>).
             </AlertDescription>
           </Alert>
         ) : (
@@ -166,7 +166,7 @@ export default function ControlPanel() {
                   <span className="text-sm text-muted-foreground mb-1">km/h</span>
                 </div>
                 <Badge variant="secondary" className={`mt-2 ${speedColor}`}>
-                  <InlineMath math="V" />
+                  <Latex>{String.raw`$V$`}</Latex>
                 </Badge>
               </CardContent>
             </Card>
@@ -180,7 +180,7 @@ export default function ControlPanel() {
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="secondary" className={widthColor}>
-                    <InlineMath math="W_{eff}" />
+                    <Latex>{String.raw`$W_{eff}$`}</Latex>
                   </Badge>
                   {W_eff <= 1.0 && <Badge variant="destructive" className="text-[10px]">FLOOR LIMIT</Badge>}
                 </div>
@@ -195,7 +195,7 @@ export default function ControlPanel() {
                   <span className="text-sm text-muted-foreground mb-1">veh/km</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Base <InlineMath math="K_{j}" />: {formatNumber(K_j_base)}
+                  Base <Latex>{String.raw`$K_{j}$`}</Latex>: {formatNumber(K_j_base)}
                 </p>
               </CardContent>
             </Card>
