@@ -16,7 +16,8 @@ export function initWorker(manifest) {
         reject(new Error(error));
       } else if (type === 'QUERY_RESULT') {
         const { queryId, buffer } = payload;
-        console.log(`[Main] Received QUERY_RESULT for ${queryId}. Buffer size: ${buffer.byteLength}`);
+        const colCount = buffer ? Object.keys(buffer).length : 0;
+        console.log(`[Main] Received QUERY_RESULT for ${queryId}. Extracted ${colCount} columns.`);
         if (pendingQueries.has(queryId)) {
           pendingQueries.get(queryId).resolve(buffer);
           pendingQueries.delete(queryId);

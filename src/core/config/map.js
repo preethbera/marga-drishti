@@ -26,28 +26,28 @@ export const GEOSPATIAL_CONFIG = {
       radiusUnits: 'pixels',
       stroked: true,
       getLineColor: [255, 255, 255, 180],
-      getLineWidth: 2,
+      getLineWidth: 1.3,
       lineWidthUnits: 'pixels',
       calculateColor: (count, maxCount) => {
-        // Cyan -> Amber -> Red
+        // High variation gradient: Teal -> Yellow -> Rose
         const intensity = Math.min(count / (maxCount || 1), 1);
         
         let r, g, b;
         if (intensity < 0.5) {
-          // Cyan (0, 255, 255) to Amber (255, 191, 0)
+          // Teal (45, 212, 191) to Yellow (250, 204, 21)
           const normalized = intensity * 2;
-          r = Math.floor(0 + (255 - 0) * normalized);
-          g = Math.floor(255 - (64 * normalized)); // 255 to 191
-          b = Math.floor(255 - (255 * normalized)); // 255 to 0
+          r = Math.floor(45 + (250 - 45) * normalized);
+          g = Math.floor(212 + (204 - 212) * normalized);
+          b = Math.floor(191 + (21 - 191) * normalized);
         } else {
-          // Amber (255, 191, 0) to Bright Red (255, 0, 0)
+          // Yellow (250, 204, 21) to Rose (244, 63, 94)
           const normalized = (intensity - 0.5) * 2;
-          r = 255;
-          g = Math.floor(191 - (191 * normalized));
-          b = 0;
+          r = Math.floor(250 + (244 - 250) * normalized);
+          g = Math.floor(204 + (63 - 204) * normalized);
+          b = Math.floor(21 + (94 - 21) * normalized);
         }
         
-        return [r, g, b, 180];
+        return [r, g, b, 200];
       }
     },
     HEATMAP: {

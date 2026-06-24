@@ -3,6 +3,8 @@ import { useNetworkStore } from '@/store/useNetworkStore';
 import { BaseMap } from '@/components/ui/base-map';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { GEOSPATIAL_CONFIG } from '@/core/config/map';
+import { Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const getLineWidth = (roadClass) => {
   switch (roadClass) {
@@ -91,7 +93,30 @@ export default function CapacityMap() {
   }, [geoJsonData, selectedSegmentId, setSelectedSegment]);
 
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden border">
+    <div id="capacity-map-container" className="relative w-full h-full rounded-lg overflow-hidden border">
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 pointer-events-none">
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
+            onClick={() => {
+              setViewState({
+                longitude: 77.5946,
+                latitude: 12.9716,
+                zoom: 11.5,
+                pitch: 0,
+                bearing: 0,
+                transitionDuration: 800,
+                transitionInterpolator: GEOSPATIAL_CONFIG.TRANSITIONS.SMOOTH.transitionInterpolator
+              });
+            }}
+            title="Fit to Data"
+          >
+            <Home className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
       <BaseMap
         layers={layers}
         viewState={viewState}

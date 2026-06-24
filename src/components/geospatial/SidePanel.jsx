@@ -69,7 +69,7 @@ function Top10Mode({ onCenterSelect }) {
         </div>
         <p className="text-xs text-muted-foreground">Click a row to zoom and drill down.</p>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {rows}
       </div>
     </div>
@@ -140,7 +140,7 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
   const maxProfileCount = profileCounts.length > 0 ? Math.max(...profileCounts, 1) : 1;
 
   return (
-    <div className="flex flex-col w-full h-full overflow-y-auto">
+    <div className="flex flex-col w-full h-full overflow-y-auto overflow-x-hidden">
       <div className="p-4 border-b bg-popover sticky top-0 z-10">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 overflow-hidden">

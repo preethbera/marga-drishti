@@ -107,7 +107,7 @@ export default function NetworkBreakdowns() {
           <CardTitle className="text-sm font-semibold text-muted-foreground uppercase">Average Capacity Loss by Road Class</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <BarChart data={classData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
               <XAxis type="number" domain={[0, 100]} stroke="#888" fontSize={12} tickFormatter={(v) => `${v}%`} />
               <YAxis dataKey="name" type="category" stroke="#888" fontSize={12} axisLine={false} tickLine={false} />
@@ -137,7 +137,7 @@ export default function NetworkBreakdowns() {
           <CardTitle className="text-sm font-semibold text-muted-foreground uppercase">Network Risk Distribution</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <PieChart>
               <Pie
                 data={riskData}

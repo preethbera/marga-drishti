@@ -43,11 +43,9 @@ export default function NetworkFilterBar() {
           <span className="text-sm text-muted-foreground mr-2">Time Window:</span>
           
           <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-[140px] pl-3 text-left font-normal bg-background">
-                {startDate ? format(new Date(startDate), "MMM d, yyyy") : <span>Start date</span>}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
+            <PopoverTrigger render={<Button variant="outline" className="w-[140px] pl-3 text-left font-normal bg-background" />}>
+              {startDate ? format(new Date(startDate), "MMM d, yyyy") : <span>Start date</span>}
+              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
@@ -62,11 +60,9 @@ export default function NetworkFilterBar() {
           <span className="text-muted-foreground text-sm">to</span>
 
           <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-[140px] pl-3 text-left font-normal bg-background">
-                {endDate ? format(new Date(endDate), "MMM d, yyyy") : <span>End date</span>}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
+            <PopoverTrigger render={<Button variant="outline" className="w-[140px] pl-3 text-left font-normal bg-background" />}>
+              {endDate ? format(new Date(endDate), "MMM d, yyyy") : <span>End date</span>}
+              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar

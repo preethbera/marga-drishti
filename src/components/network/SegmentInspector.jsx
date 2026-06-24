@@ -20,10 +20,12 @@ export default function SegmentInspector() {
 
   const segment = processedSegments.find(s => s.id === selectedSegmentId);
 
+  const currentK = Array.isArray(referenceDensity) ? referenceDensity[0] : referenceDensity;
+
   const stats = useMemo(() => {
     if (!segment) return null;
-    return runSimulation(segment.width, segment.concurrentPCU, referenceDensity[0]);
-  }, [segment, referenceDensity]);
+    return runSimulation(segment.width, segment.concurrentPCU, currentK);
+  }, [segment, currentK]);
 
   const chartData = useMemo(() => {
     if (!segment || !stats) return [];
@@ -54,7 +56,7 @@ export default function SegmentInspector() {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 border-b">
+      <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Segment {segment.id}</CardTitle>
           <span className="text-xs font-medium bg-muted px-2 py-1 rounded">
@@ -66,7 +68,7 @@ export default function SegmentInspector() {
         </p>
       </CardHeader>
       
-      <CardContent className="flex-1 overflow-y-auto p-4 space-y-6">
+      <CardContent className="flex-1 overflow-y-auto space-y-4">
         {/* Width Stats */}
         <div className="grid grid-cols-3 gap-2 text-center text-sm">
           <div className="bg-muted/50 rounded p-2 border">
@@ -85,16 +87,18 @@ export default function SegmentInspector() {
 
         {/* Capacity Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1 border-l-2 pl-3">
+          <div className="flex flex-col gap-1 pl-3">
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              Base Capacity (<InlineMath math="K_{j,base}" />)
+              Base Capacity
             </span>
+            <span className="text-xs text-muted-foreground">(<InlineMath math="K_{j,base}" />)</span>
             <span className="font-mono">{Math.round(stats.K_j_base)} veh/km</span>
           </div>
           <div className="flex flex-col gap-1 border-l-2 pl-3">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              Effective (<InlineMath math="K_{j,eff}" />)
+            <span className="text-xs text-muted-foreground">
+              Effective Jam Density
             </span>
+            <span className="text-xs text-muted-foreground">(<InlineMath math="K_{j,eff}" />)</span>
             <span className="font-mono text-primary">{Math.round(stats.K_j_eff)} veh/km</span>
           </div>
         </div>
@@ -111,10 +115,10 @@ export default function SegmentInspector() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Reference Density (<InlineMath math="K" />)</span>
-            <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{referenceDensity[0]} veh/km</span>
+            <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{currentK} veh/km</span>
           </div>
           <Slider
-            value={referenceDensity}
+            value={Array.isArray(referenceDensity) ? referenceDensity : [referenceDensity]}
             onValueChange={setReferenceDensity}
             max={150}
             min={1}
@@ -124,14 +128,14 @@ export default function SegmentInspector() {
         </div>
 
         {/* Speed Result */}
-        <div className="bg-muted/30 border rounded-lg p-6 text-center">
-          <div className="text-sm text-muted-foreground mb-2">Predicted Speed (<InlineMath math="V" />)</div>
+        <div className="bg-card border rounded-lg p-4 flex items-center justify-between">
+          <span className="text-sm font-medium">Predicted Speed (<InlineMath math="V" />)</span>
           {isGridlock ? (
-            <div className="text-3xl font-black text-chart-5 animate-pulse">GRIDLOCK</div>
+            <div className={`text-lg font-bold text-chart-5`}>GRIDLOCK</div>
           ) : (
-            <div className="text-4xl font-bold text-foreground">
+            <span className={`text-lg font-bold text-chart-2`}>
               {stats.V.toFixed(1)} <span className="text-xl font-medium text-muted-foreground">km/h</span>
-            </div>
+            </span>
           )}
         </div>
 
@@ -143,7 +147,7 @@ export default function SegmentInspector() {
               <XAxis 
                 dataKey="density" 
                 type="number"
-                domain={[0, 150]}
+                domain={[0, 70]}
                 stroke="#666" 
                 fontSize={11} 
                 tickLine={false}
@@ -170,7 +174,7 @@ export default function SegmentInspector() {
                 isAnimationActive={false}
               />
               <ReferenceDot 
-                x={referenceDensity[0]} 
+                x={currentK} 
                 y={Math.max(0, stats.V)} 
                 r={6} 
                 fill="var(--color-chart-2)" 

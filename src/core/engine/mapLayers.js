@@ -71,7 +71,7 @@ export function buildBubblesLayer(id, data, maxCount, onClick) {
     getRadius: (_, {index, data}) => {
       // Linear mapping of Area to Count => r = r_max * sqrt(count / maxCount)
       const count = Number(data.count[index]);
-      const maxAreaRadius = 45; // Fixed pixel size for the absolute highest count
+      const maxAreaRadius = 60; // Fixed pixel size for the absolute highest count
       const ratio = count / (maxCount || 1);
       return maxAreaRadius * Math.sqrt(ratio);
     },

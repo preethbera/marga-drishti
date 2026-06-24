@@ -9,10 +9,9 @@ export default function PageHeader() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight">Temporal Hotspot Analysis</h1>
-            <Badge variant="secondary" className="text-xs font-normal">Parking × Congestion</Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            Identify <span className="font-semibold text-foreground">when</span> illegal parking chokes Bengaluru carriageways — so enforcement patrols can be scheduled, not just dispatched.
+            Identify when illegal parking chokes Bengaluru carriageways, so enforcement patrols can be scheduled, not just dispatched.
           </p>
         </div>
       </div>
