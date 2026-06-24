@@ -19,7 +19,7 @@ export default function GridlockGauge() {
   if (isGridlocked) {
     color = "text-red-500 bg-red-500 animate-pulse";
     stroke = "#ef4444";
-    status = "Gridlocked";
+    status = "Traffic Jam";
   } else if (percentage > 85) {
     color = "text-red-500 bg-red-500";
     stroke = "#ef4444";
@@ -40,7 +40,7 @@ export default function GridlockGauge() {
   return (
     <Card className="border-sidebar-border bg-sidebar shadow-md h-full flex flex-col">
       <CardHeader className="pb-0">
-        <CardTitle className="text-lg">Gridlock Threshold</CardTitle>
+        <CardTitle className="text-lg">Jam Threshold</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col items-center justify-center p-6 relative">
         <div className="relative w-48 h-24 mb-6">

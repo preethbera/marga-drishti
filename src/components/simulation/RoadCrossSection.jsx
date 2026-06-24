@@ -7,22 +7,18 @@ export default function RoadCrossSection() {
   const { roadWidth, parkedPCU, results } = useSimulationStore();
   const { W_eff } = results;
 
-  // Calculations for visual rendering
-  const maxWidth = 20; // max scale
-  const scale = 100 / maxWidth; // 1 meter = X% width
-
-  const totalWidthPct = roadWidth * scale;
   const blockedWidth = roadWidth - W_eff;
-  const blockedWidthPct = blockedWidth * scale;
-  const usableWidthPct = W_eff * scale;
+
+  // Calculations for visual rendering
+  // The entire horizontal strip represents the full selected road width
+  const totalWidthPct = 100;
+  const blockedWidthPct = (blockedWidth / roadWidth) * 100;
+  const usableWidthPct = (W_eff / roadWidth) * 100;
 
   // Determine colors based on W_eff
   let usableColor = "bg-green-500";
   if (W_eff < 3.6) usableColor = "bg-red-500";
   else if (W_eff <= 7.2) usableColor = "bg-amber-500";
-
-  const numLanes = Math.floor(roadWidth / 3.6);
-  const laneMarkers = Array.from({ length: numLanes - 1 }).map((_, i) => (i + 1) * 3.6);
 
   return (
     <Card className="border-sidebar-border bg-sidebar shadow-md h-full flex flex-col">
@@ -57,14 +53,6 @@ export default function RoadCrossSection() {
             className="absolute top-0 bottom-0 left-0 bg-slate-700 transition-all duration-300"
             style={{ width: `${totalWidthPct}%` }}
           >
-            {/* Lane Dividers */}
-            {laneMarkers.map(marker => (
-              <div 
-                key={marker}
-                className="absolute top-0 bottom-0 w-0.5 bg-white/30 border-l border-dashed border-white/50"
-                style={{ left: `${(marker / roadWidth) * 100}%` }}
-              />
-            ))}
           </div>
 
           {/* Blocked Area (Hatching) */}

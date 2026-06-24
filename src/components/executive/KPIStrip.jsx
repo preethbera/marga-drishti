@@ -67,13 +67,13 @@ export default function KPIStrip({ stats, dateRange, mappings, isLoading }) {
       </div>
 
       {/* KPI 2 - Top Offence */}
-      <div className="border border-destructive/30 rounded-lg p-5 bg-destructive/5 group">
+      <div className="border rounded-lg p-5 bg-card group">
         <div className="flex items-start justify-between">
-          <p className="text-xs uppercase text-destructive/80 font-semibold">Top Offence</p>
+          <p className="text-xs uppercase text-muted-foreground font-semibold">Top Offence</p>
           <TriangleAlert className="w-4 h-4 text-destructive/80" />
         </div>
         <div className="mt-2 w-full overflow-hidden">
-          <h2 className="text-xl sm:text-2xl font-bold text-destructive truncate" title={topOffenceName}>{topOffenceName}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold truncate" title={topOffenceName}>{topOffenceName}</h2>
         </div>
         <div className="mt-1">
           <p className="text-xs text-muted-foreground/80">Most frequent violation type</p>

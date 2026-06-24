@@ -31,7 +31,7 @@ export const calculateEffectiveJamDensity = (W_eff) => {
  */
 export const calculatePredictedSpeed = (K, K_j_eff) => {
   if (K <= 0) return Infinity; // Pure mathematical limit
-  if (K >= K_j_eff) return 0; // Gridlock
+  if (K >= K_j_eff) return 0; // Traffic Jam
   return V_O * Math.log(K_j_eff / K);
 };
 
@@ -51,7 +51,7 @@ export const calculateMaxPCU = (W_total) => {
 };
 
 /**
- * Calculate the exact PCU at which the current traffic density will cause total gridlock.
+ * Calculate the exact PCU at which the current traffic density will cause total traffic jam.
  */
 export const calculateGridlockPCU = (W_total, K) => {
   return Math.max(0, (W_total - (K / K_J_PER_METER)) / PCU_WIDTH_M);
@@ -67,11 +67,11 @@ export const calculateSpeedLossAttribution = (K, K_j_base, K_j_eff, V) => {
   let parkingLoss = 0;
 
   if (K >= K_j_base) {
-    // Density alone is enough to cause gridlock
+    // Density alone is enough to cause a traffic jam
     densityLoss = V_F;
     parkingLoss = 0;
   } else if (K >= K_j_eff) {
-    // Density was fine, but parking reduced capacity enough to cause gridlock
+    // Density was fine, but parking reduced capacity enough to cause a traffic jam
     densityLoss = V_F - V_no_parking;
     parkingLoss = V_no_parking; // Drops the remaining speed to 0
   } else {

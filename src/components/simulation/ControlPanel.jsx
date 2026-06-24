@@ -139,7 +139,7 @@ export default function ControlPanel() {
               onValueChange={(val) => handleDensityChange(Array.isArray(val) ? val[0] : val)}
             />
             <p className="text-xs text-muted-foreground">
-              Gridlock threshold at current PCU: {K_j_eff.toFixed(1)} veh/km.
+              Jam threshold at current PCU: {K_j_eff.toFixed(1)} veh/km.
             </p>
           </div>
         </CardContent>
@@ -150,7 +150,7 @@ export default function ControlPanel() {
         {isGridlocked ? (
           <Alert variant="destructive" className="h-full flex flex-col items-center justify-center bg-red-950/40 border-red-900/50">
             <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-            <AlertTitle className="text-2xl font-bold text-red-500">System Gridlock</AlertTitle>
+            <AlertTitle className="text-2xl font-bold text-red-500">System Traffic Jam</AlertTitle>
             <AlertDescription className="text-center text-red-200 mt-2 max-w-sm">
               The combination of traffic density and parked vehicles has exceeded the physical capacity of the road. Flow is completely halted (<Latex>{String.raw`$V = 0$`}</Latex>).
             </AlertDescription>

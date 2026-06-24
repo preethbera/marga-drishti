@@ -51,7 +51,7 @@ export default function SegmentInspector() {
     );
   }
 
-  const isGridlock = stats.V <= 0;
+  const isJam = stats.V <= 0;
 
   return (
     <Card className="h-full flex flex-col">
@@ -105,7 +105,7 @@ export default function SegmentInspector() {
         {/* Capacity Reduction */}
         <div className="bg-card border rounded-lg p-4 flex items-center justify-between">
           <span className="text-sm font-medium">Capacity Reduction</span>
-          <span className={`text-lg font-bold ${stats.capacityLostPercent > 50 ? 'text-chart-5' : 'text-chart-2'}`}>
+          <span className={`text-lg font-bold ${stats.capacityLostPercent > 50 ? 'text-destructive' : 'text-chart-2'}`}>
             {stats.capacityLostPercent.toFixed(1)}%
           </span>
         </div>
@@ -129,8 +129,8 @@ export default function SegmentInspector() {
         {/* Speed Result */}
         <div className="bg-card border rounded-lg p-4 flex items-center justify-between">
           <span className="text-sm font-medium">Predicted Speed (<Latex>{String.raw`$V$`}</Latex>)</span>
-          {isGridlock ? (
-            <div className={`text-lg font-bold text-chart-5`}>GRIDLOCK</div>
+          {isJam ? (
+            <div className={`text-lg font-bold text-destructive`}>TRAFFIC JAM</div>
           ) : (
             <span className={`text-lg font-bold text-chart-2`}>
               {stats.V.toFixed(1)} <span className="text-xl font-medium text-muted-foreground">km/h</span>

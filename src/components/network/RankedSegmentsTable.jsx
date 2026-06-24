@@ -113,7 +113,7 @@ export default function RankedSegmentsTable() {
                     <TableCell className="text-right">{row.concurrentPCU.toFixed(1)}</TableCell>
                     <TableCell className="text-right text-muted-foreground">{row.violationCount}</TableCell>
                     <TableCell className={`text-right font-bold ${
-                      row.capacityLoss >= 50 ? 'text-chart-5' : 
+                      row.capacityLoss >= 50 ? 'text-destructive' : 
                       row.capacityLoss >= 20 ? 'text-chart-4' : 
                       'text-chart-2'
                     }`}>

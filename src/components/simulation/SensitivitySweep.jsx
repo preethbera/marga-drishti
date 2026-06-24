@@ -102,7 +102,7 @@ export default function SensitivitySweep() {
             >
               <AlertTriangle className="h-5 w-5" />
               <AlertDescription>
-                Traffic density alone causes total gridlock. Any parking will
+                Traffic density alone causes total traffic jam. Any parking will
                 only worsen the situation.
               </AlertDescription>
             </Alert>
@@ -158,7 +158,7 @@ export default function SensitivitySweep() {
               content={<CustomChartTooltip />}
               formatter={(value) => {
                 if (value <= gridlockPCU)
-                  return [`0.0 km/h (Gridlocked)`, `Predicted Speed`];
+                  return [`0.0 km/h (Jammed)`, `Predicted Speed`];
                 return [`${value.toFixed(1)} km/h`, `Predicted Speed`];
               }}
               labelFormatter={(label) => `Blockage: ${label} PCU`}
@@ -190,7 +190,7 @@ export default function SensitivitySweep() {
                   strokeDasharray="3 3"
                   label={{
                     position: "top",
-                    value: `Gridlock at ${gridlockPCU.toFixed(1)} PCU`,
+                    value: `Jam at ${gridlockPCU.toFixed(1)} PCU`,
                     fill: "#ef4444",
                     fontSize: 12,
                   }}
@@ -244,7 +244,7 @@ export default function SensitivitySweep() {
 
         <p className="text-xs text-muted-foreground mt-4 text-center">
           Based on reference density K = {trafficDensity.toFixed(1)} veh/km.
-          Adjust the density slider to see how gridlock threshold shifts.
+          Adjust the density slider to see how jam threshold shifts.
         </p>
       </CardContent>
     </Card>

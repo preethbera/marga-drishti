@@ -47,7 +47,7 @@ export default function SimulationModel() {
             Traffic congestion is not solely a product of high vehicle volume. In urban environments, illegally parked vehicles act as physical bottlenecks, choking the available width of the roadway. A single double-parked car can effectively destroy the capacity of an entire lane.
           </p>
           <p>
-            Standard macroscopic models, such as the Greenberg model, assume a constant physical road space and predict speed purely based on vehicle density. To accurately simulate urban gridlock, the system required a mathematical bridge that dynamically shrinks the road's theoretical capacity in real-time as parking violations occur.
+            Standard macroscopic models, such as the Greenberg model, assume a constant physical road space and predict speed purely based on vehicle density. To accurately simulate urban traffic jams, the system required a mathematical bridge that dynamically shrinks the road's theoretical capacity in real-time as parking violations occur.
           </p>
         </div>
       </section>

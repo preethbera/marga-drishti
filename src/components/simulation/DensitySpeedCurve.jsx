@@ -15,7 +15,7 @@ const COLORS = {
   0.5: 'var(--color-chart-2)',
   1.0: 'var(--color-chart-4)', 
   1.5: 'var(--color-chart-8)',
-  2.0: 'var(--color-chart-5)',
+  2.0: 'var(--color-destructive)',
   2.5: 'var(--color-chart-3)', 
   3.0: 'var(--color-chart-6)'
 };
@@ -53,7 +53,7 @@ export default function DensitySpeedCurve() {
         if (k <= kjEff) {
           point[`pcu_${pcu}`] = Math.max(0, speed);
         } else if (k - 2 < kjEff) {
-          // First point after gridlock density, pull it to 0 so the line touches the axis
+          // First point after jam density, pull it to 0 so the line touches the axis
           point[`pcu_${pcu}`] = 0;
         }
       });
@@ -64,7 +64,7 @@ export default function DensitySpeedCurve() {
   }, [roadWidth, parkedPCU, activeCurves]);
 
   const currentW_eff = calculateEffectiveWidth(roadWidth, parkedPCU);
-  const isAllGridlock = currentW_eff <= 1.0;
+  const isAllJam = currentW_eff <= 1.0;
 
   return (
     <Card className="border-sidebar-border bg-sidebar shadow-md h-full flex flex-col">
@@ -100,14 +100,15 @@ export default function DensitySpeedCurve() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 relative min-h-[300px]">
-        {isAllGridlock ? (
-          <div className="absolute inset-0 flex items-center justify-center p-6 z-10">
-            <Alert variant="destructive" className="bg-red-950/80 border-red-900 shadow-xl max-w-md">
-              <AlertTriangle className="h-5 w-5" />
-              <AlertDescription>
-                Road width is too narrow to support any flow. All configurations result in gridlock.
-              </AlertDescription>
-            </Alert>
+        {isAllJam ? (
+          <div className="flex flex-col items-center justify-center h-[300px] text-center px-4">
+            <div className="text-destructive mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <p className="font-semibold text-lg mb-1">Total System Failure</p>
+            <p className="text-sm text-muted-foreground max-w-[250px]">
+              Road width is too narrow to support any flow. All configurations result in a traffic jam.
+            </p>
           </div>
         ) : null}
         

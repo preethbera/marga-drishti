@@ -11,11 +11,11 @@ export default function NetworkBreakdowns() {
 
     // Group by Road Class
     const classMap = {};
-    const riskMap = { Safe: 0, Marginal: 0, Critical: 0, Gridlock: 0 };
+    const riskMap = { Safe: 0, Marginal: 0, Critical: 0, TrafficJam: 0 };
 
     processedSegments.forEach(s => {
       // Risk Dist
-      if (s.capacityLoss >= 100) riskMap.Gridlock++;
+      if (s.capacityLoss >= 100) riskMap.TrafficJam++;
       else if (s.capacityLoss >= 50) riskMap.Critical++;
       else if (s.capacityLoss >= 20) riskMap.Marginal++;
       else riskMap.Safe++;
@@ -50,7 +50,7 @@ export default function NetworkBreakdowns() {
       { name: 'Safe', value: riskMap.Safe, color: '#22c55e' },
       { name: 'Marginal', value: riskMap.Marginal, color: '#eab308' },
       { name: 'Critical', value: riskMap.Critical, color: '#f97316' },
-      { name: 'Gridlock', value: riskMap.Gridlock, color: '#ef4444' }
+      { name: 'Traffic Jam', value: riskMap.TrafficJam, color: '#991b1b' }
     ].filter(d => d.value > 0);
 
     return { classData, riskData };
