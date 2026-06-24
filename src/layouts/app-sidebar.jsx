@@ -86,7 +86,7 @@ const data = {
           title: "Documentation",
           url: "/docs",
           icon: BookOpen,
-          isActive: false,
+          isActive: true,
           items: [
             {
               title: "Simulation Model",

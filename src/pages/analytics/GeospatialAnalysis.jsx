@@ -55,6 +55,7 @@ export default function GeospatialAnalysis() {
       setViewState(GEOSPATIAL_CONFIG.INITIAL_VIEW_STATE);
     } else {
       setFilters({ centerCode: String(center.code) });
+      setActiveLayerMode(prev => prev === 'Bubbles' ? 'Points' : prev);
       // We will look up the lat/lon if needed, but the drill-down effect 
       // is handled. For now just set code and fly.
       // If we had coordinates handy, we could set them here.
@@ -121,8 +122,8 @@ export default function GeospatialAnalysis() {
               layerConfigs={[
                 {
                   id: isDetailed ? `drill-${activeLayerMode}` : `city-${activeLayerMode}`,
-                  type: isDetailed && activeLayerMode === 'Bubbles' ? 'Points' : activeLayerMode,
-                  data: isDetailed ? data.mapDetailed : (activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed),
+                  type: activeLayerMode,
+                  data: activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed,
                   overrides: {
                     onClick: activeLayerMode === 'Bubbles' ? ({ index }) => {
                       if (index !== -1 && data.mapAggregated && data.mapAggregated.code) {
@@ -150,7 +151,8 @@ export default function GeospatialAnalysis() {
                     </SelectTrigger>
                     <SelectContent position="popper" side="bottom" sideOffset={4} alignItemWithTrigger={false} className="bg-background dark:bg-background">
                       <SelectItem value="Hexbins">3D Hex</SelectItem>
-                      <SelectItem value="Bubbles">{isDetailed ? 'Points' : 'Bubbles'}</SelectItem>
+                      {!isDetailed && <SelectItem value="Bubbles">Bubbles</SelectItem>}
+                      <SelectItem value="Points">Points</SelectItem>
                       <SelectItem value="Heatmap">Heatmap</SelectItem>
                     </SelectContent>
                   </Select>
@@ -160,7 +162,7 @@ export default function GeospatialAnalysis() {
                     size="icon" 
                     className="rounded-md shadow-sm bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent h-9 w-9"
                     onClick={() => {
-                      const currentData = isDetailed ? data.mapDetailed : (activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed);
+                      const currentData = activeLayerMode === 'Bubbles' ? data.mapAggregated : data.mapDetailed;
                       const mapContainer = document.getElementById('geospatial-map-container');
                       const w = mapContainer ? mapContainer.clientWidth : 800;
                       const h = mapContainer ? mapContainer.clientHeight : 600;

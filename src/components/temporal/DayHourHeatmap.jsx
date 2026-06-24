@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
-import { TriangleAlert } from 'lucide-react';
 
 const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -41,11 +40,10 @@ export default function DayHourHeatmap({ data, filters, setFilters }) {
       <CardHeader className="pb-4 flex flex-row items-center justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <TriangleAlert className="w-5 h-5 text-warning" />
             <CardTitle className="text-base">Day × Hour Violation Heatmap</CardTitle>
           </div>
           <CardDescription className="text-xs">
-            The whole week at a glance — darker cells indicate higher violation volume.
+            The whole week at a glance. Darker cells indicate higher violation volume.
           </CardDescription>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

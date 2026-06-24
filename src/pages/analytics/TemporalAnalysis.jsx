@@ -159,7 +159,7 @@ export default function TemporalAnalysis() {
       </div>
 
       {/* Loading Overlay */}
-      {(!isEngineReady || isLoadingA) && (
+      {(!isEngineReady || (isLoadingA && !playbackState.isPlaying)) && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm transition-all pointer-events-none">
           <div className="flex flex-col items-center gap-2 bg-card p-6 rounded-lg shadow-lg border max-w-md text-center pointer-events-auto">
             {dataError ? (
