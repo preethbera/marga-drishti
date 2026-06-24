@@ -27,8 +27,8 @@ export default function NetworkIntelligence() {
       
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Network Capacity Intelligence</h1>
-        <p className="text-muted-foreground mt-1">Marga-Drishti · Bengaluru Traffic Police · Dynamic Greenberg Model</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Congestion Analysis</h1>
+        <p className="text-muted-foreground mt-1">Network-Wide Capacity Analysis using Dynamic Greenberg Model</p>
       </div>
 
       {/* Global Error State */}

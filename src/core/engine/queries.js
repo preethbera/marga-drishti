@@ -571,7 +571,7 @@ export const QUERIES = {
         AND v.offence_code != [] 
   `,
 
-  // --- Network Intelligence Queries ---
+  // --- Congestion Analysis Queries ---
   
   getNetworkIntelligenceData: (filters) => {
     let dateCondition = "";

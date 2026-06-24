@@ -17,7 +17,7 @@ import DocsLayout from "@/layouts/DocsLayout";
 export default function AggregationMethodology() {
   const toc = [
     { id: "geospatial", label: "Geospatial Data Handling" },
-    { id: "network", label: "Network Intelligence" },
+    { id: "network", label: "Congestion Analysis" },
     { id: "temporal", label: "Temporal Normalization" }
   ];
 
@@ -80,15 +80,15 @@ export default function AggregationMethodology() {
         </div>
       </section>
 
-      {/* Section B: Network Intelligence */}
+      {/* Section B: Congestion Analysis */}
       <section id="network" className="scroll-mt-8">
         <div className="mb-10 border-b pb-6 mt-16">
           <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <GitBranch className="w-8 h-8 text-muted-foreground/50" />
-            2. Network Intelligence & Geometry
+            2. Congestion Analysis & Geometry
           </h2>
           <p className="text-lg text-muted-foreground mt-4 leading-relaxed">
-            The preprocessing mechanics bridging geographical road segments with the mathematical simulation engine inside <Link to="/simulation/network" className="text-primary hover:underline font-medium inline-flex items-center">Network Intelligence <ExternalLink className="w-3 h-3 ml-1" /></Link>.
+            The preprocessing mechanics bridging geographical road segments with the mathematical simulation engine inside <Link to="/simulation/network" className="text-primary hover:underline font-medium inline-flex items-center">Congestion Analysis <ExternalLink className="w-3 h-3 ml-1" /></Link>.
           </p>
         </div>
 

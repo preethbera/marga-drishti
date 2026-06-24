@@ -62,7 +62,7 @@ const data = {
           ],
         },
         {
-          title: "Simulation",
+          title: "Modeling & Simulation",
           url: "/simulation",
           icon: Map,
           isActive: false,
@@ -72,7 +72,7 @@ const data = {
               url: "/simulation/studio",
             },
             {
-              title: "Network Intelligence",
+              title: "Congestion Analysis",
               url: "/simulation/network",
             },
           ],

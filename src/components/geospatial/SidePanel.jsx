@@ -330,14 +330,14 @@ function DrillDownMode({ onClearCenter, onCenterSelect }) {
               <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </button>
             <button 
-              onClick={() => alert('Sandbox integration coming soon')}
+              onClick={() => navigate('/analytics/sandbox')}
               className="flex items-center justify-between p-3 text-sm font-medium text-left bg-muted/30 hover:bg-muted/70 rounded-md transition-colors group"
             >
               <span>Cross-tabulate offences in <strong className="text-foreground">Sandbox</strong></span>
               <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </button>
             <button 
-              onClick={() => navigate('/analytics')}
+              onClick={() => navigate('/analytics/executive')}
               className="flex items-center justify-between p-3 text-sm font-medium text-left bg-muted/30 hover:bg-muted/70 rounded-md transition-colors group"
             >
               <span>Open the <strong className="text-foreground">Executive Briefing</strong></span>

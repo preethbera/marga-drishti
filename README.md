@@ -4,14 +4,14 @@
 
 Marga-Drishti is a sophisticated, browser-based traffic and mobility analytics platform. Built with a modern React stack, it leverages the power of DuckDB WebAssembly (WASM) to perform high-performance SQL queries directly in the client browser against statically hosted Parquet and JSON files. This architecture eliminates the need for a traditional backend database server, offering a completely serverless, highly responsive analytics experience.
 
-The application provides deep insights into geospatial data, temporal trends, and network intelligence, alongside a simulation studio for modeling traffic scenarios.
+The application provides deep insights into geospatial data, temporal trends, and congestion analysis, alongside a simulation studio for modeling traffic scenarios.
 
 ## Key Features
 
 - **Client-Side Analytics Engine:** Utilizes DuckDB-WASM and Apache Arrow for lightning-fast, in-browser data processing without a backend database.
 - **Geospatial Visualization:** Interactive map-based analytics using MapLibre GL JS and Deck.gl for rendering complex, high-performance map layers.
 - **Temporal Analysis:** Time-series data visualization powered by Recharts.
-- **Simulation Studio:** Tools for modeling and visualizing network intelligence and traffic simulations.
+- **Simulation Studio:** Tools for modeling and visualizing congestion analysis and traffic simulations.
 - **Exploratory Sandbox:** An interactive environment for ad-hoc data exploration.
 - **Robust State Management:** Centralized application state using Zustand, divided into specialized stores for different domains (e.g., geospatial, temporal, network).
 - **Modern UI/UX:** Built with Tailwind CSS and shadcn/ui components for a sleek, responsive, and accessible user interface.
@@ -66,7 +66,7 @@ marga-drishti/
 │   ├── pages/              # Route-specific page components
 │   │   ├── analytics/      # Geospatial, Temporal, Executive, Sandbox pages
 │   │   ├── docs/           # Documentation pages rendered in-app
-│   │   ├── simulation/     # Simulation Studio and Network Intelligence pages
+│   │   ├── simulation/     # Simulation Studio and Congestion Analysis pages
 │   │   └── system/         # Settings page
 │   └── store/              # Zustand state stores (e.g., useGeospatialStore.js)
 ├── components.json         # shadcn/ui configuration

@@ -99,7 +99,7 @@ export const useNetworkStore = create((set, get) => ({
       set({ networkData: parsedData, isFetching: false });
       get().processData();
     } catch (error) {
-      console.error("Failed to load network intelligence data:", error);
+      console.error("Failed to load congestion analysis data:", error);
       set({ isFetching: false, error: error.message });
     }
   },

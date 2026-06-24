@@ -134,7 +134,7 @@ export default function FeaturesCapabilities() {
           <div>
             <h3 className="text-xl font-semibold tracking-tight mb-3 text-foreground">Network-Wide Subsetting</h3>
             <p className="text-base text-foreground/90 leading-relaxed">
-              Rather than treating the city as a monolith, the <Link to="/simulation/network" className="text-primary hover:underline font-medium inline-flex items-center">Network Intelligence <ExternalLink className="w-3 h-3 ml-1" /></Link> layer provides robust filtering tools. This allows operators to slice the entire geospatial network down to specific severity levels, instantly isolating critically congested bottlenecks and filtering out non-actionable, free-flowing corridors.
+              Rather than treating the city as a monolith, the <Link to="/simulation/network" className="text-primary hover:underline font-medium inline-flex items-center">Congestion Analysis <ExternalLink className="w-3 h-3 ml-1" /></Link> layer provides robust filtering tools. This allows operators to slice the entire geospatial network down to specific severity levels, instantly isolating critically congested bottlenecks and filtering out non-actionable, free-flowing corridors.
             </p>
           </div>
         </div>

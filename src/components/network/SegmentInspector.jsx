@@ -47,6 +47,7 @@ export default function SegmentInspector() {
       <Card className="h-full flex flex-col items-center justify-center text-center p-6 border-dashed">
         <div className="text-muted-foreground mb-2">No segment selected</div>
         <p className="text-sm text-muted-foreground">Click on a road segment on the map to view its detailed capacity breakdown.</p>
+        <p className="text-sm text-muted-foreground mt-4 bg-muted/50 p-3 rounded-lg border border-border">Note: We are only highlighting the segments having at least one violation.</p>
       </Card>
     );
   }
