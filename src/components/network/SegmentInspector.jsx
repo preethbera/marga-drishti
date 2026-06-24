@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { runSimulation, calculateEffectiveWidth } from '@/core/engine/simulation';
 import { InlineMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid } from 'recharts';
 
 const getDisplayClass = (rc) => {

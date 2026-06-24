@@ -12,8 +12,7 @@ import SpeedLossAttribution from '@/components/simulation/SpeedLossAttribution';
 import RoadCrossSection from '@/components/simulation/RoadCrossSection';
 import SensitivitySweep from '@/components/simulation/SensitivitySweep';
 
-// Import KaTeX CSS for math rendering
-import 'katex/dist/katex.min.css';
+
 
 export default function SimulationStudio() {
   const { resetToDefaults } = useSimulationStore();
