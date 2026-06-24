@@ -6,6 +6,7 @@ import {
   Database,
   Map,
   Settings,
+  BookOpen,
 } from "lucide-react";
 
 
@@ -32,52 +33,77 @@ const data = {
     avatar: "",
   },
 
-  navMain: [
+  navGroups: [
     {
-      title: "Analytics",
-      url: "/analytics",
-      icon: BarChart3,
-      isActive: true,
+      title: "Analysis & Simulation",
       items: [
         {
-          title: "Executive Summary",
-          url: "/analytics/executive",
+          title: "Analytics",
+          url: "/analytics",
+          icon: BarChart3,
+          isActive: true,
+          items: [
+            {
+              title: "Executive Summary",
+              url: "/analytics/executive",
+            },
+            {
+              title: "Temporal Analysis",
+              url: "/analytics/temporal",
+            },
+            {
+              title: "Geospatial Analysis",
+              url: "/analytics/geospatial",
+            },
+            {
+              title: "Exploratory Sandbox",
+              url: "/analytics/sandbox",
+            },
+          ],
         },
         {
-          title: "Temporal Analysis",
-          url: "/analytics/temporal",
+          title: "Simulation",
+          url: "/simulation",
+          icon: Map,
+          isActive: false,
+          items: [
+            {
+              title: "Simulation Studio",
+              url: "/simulation/studio",
+            },
+            {
+              title: "Network Intelligence",
+              url: "/simulation/network",
+            },
+          ],
         },
-        {
-          title: "Geospatial Analysis",
-          url: "/analytics/geospatial",
-        },
-        {
-          title: "Exploratory Sandbox",
-          url: "/analytics/sandbox",
-        },
-      ],
+      ]
     },
     {
-      title: "Simulation",
-      url: "/simulation",
-      icon: Map,
-      isActive: false,
+      title: "Documentation & Methodology",
       items: [
         {
-          title: "Simulation Studio",
-          url: "/simulation/studio",
+          title: "Documentation",
+          url: "/docs",
+          icon: BookOpen,
+          isActive: false,
+          items: [
+            {
+              title: "Simulation Model",
+              url: "/docs/simulation-model",
+            },
+            {
+              title: "Features & Capabilities",
+              url: "/docs/features-capabilities",
+            },
+            {
+              title: "Data Aggregation & Methodology",
+              url: "/docs/aggregation-methodology",
+            },
+          ],
         },
-        {
-          title: "Network Intelligence",
-          url: "/simulation/network",
-        },
-      ],
-    },
-    {
-      title: "Data Management",
-      url: "/data-ingestion",
-      icon: Database,
-    },
+      ]
+    }
   ],
   navSecondary: [
     {
@@ -108,7 +134,9 @@ export function AppSidebar({ ...props }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        {data.navGroups.map((group) => (
+          <NavMain key={group.title} title={group.title} items={group.items} />
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <NavSecondary items={data.navSecondary} />

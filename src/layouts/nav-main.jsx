@@ -20,9 +20,10 @@ import {
   SidebarMenuSubItem,
 } from "@components/ui/sidebar";
 
-export function NavMain({ items }) {
+export function NavMain({ title, items }) {
   return (
     <SidebarGroup>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item) =>
           item.items?.length ? (

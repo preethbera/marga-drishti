@@ -10,6 +10,9 @@ import ExploratorySandbox from "@pages/analytics/ExploratorySandbox";
 import SimulationStudio from "@pages/simulation/SimulationStudio";
 import NetworkIntelligence from "@pages/simulation/NetworkIntelligence";
 import Settings from "@pages/system/Settings";
+import SimulationModel from "@pages/docs/SimulationModel";
+import FeaturesCapabilities from "@pages/docs/FeaturesCapabilities";
+import AggregationMethodology from "@pages/docs/AggregationMethodology";
 
 export default function App() {
   return (
@@ -39,6 +42,14 @@ export default function App() {
 
             {/* Legacy route fallback */}
             <Route path="geospatial" element={<Navigate to="/analytics/geospatial" replace />} />
+
+            {/* Documentation Routes */}
+            <Route path="docs">
+              <Route path="simulation-model" element={<SimulationModel />} />
+              <Route path="features-capabilities" element={<FeaturesCapabilities />} />
+              <Route path="aggregation-methodology" element={<AggregationMethodology />} />
+              <Route path="*" element={<Navigate to="/docs/simulation-model" replace />} />
+            </Route>
 
             <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/analytics/executive" replace />} />
